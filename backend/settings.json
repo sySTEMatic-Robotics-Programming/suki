@@ -1,0 +1,12 @@
+{
+  "listening": true,
+  "dry_run": false,
+  "stt_lang": "auto",
+  "stt_model": "",
+  "mic_device": "plughw:CARD=Webcam,DEV=0",
+  "mic_channel": 0,
+  "gain": 4.0,
+  "threshold": 600.0,
+  "fuzz": 0.8,
+  "camera": true
+}

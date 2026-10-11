@@ -1,0 +1,51 @@
+{
+  "seqs": [
+    {
+      "id": 1,
+      "name": "sit up",
+      "steps": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "hold": 0.4,
+      "reverse": false,
+      "repeat": 1
+    },
+    {
+      "id": 2,
+      "name": "sit down",
+      "steps": [
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "hold": 0.4,
+      "reverse": false,
+      "repeat": 1
+    },
+    {
+      "id": 3,
+      "name": "sit \u2192 P1-P4 \u2192 back",
+      "steps": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "hold": 0.4,
+      "reverse": true,
+      "repeat": 1
+    }
+  ],
+  "seeded": [
+    "sit up",
+    "sit down",
+    "sit \u2192 P1-P4 \u2192 back"
+  ]
+}

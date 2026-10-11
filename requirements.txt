@@ -1,0 +1,19 @@
+# Suki backend dependencies.
+fastapi
+uvicorn
+websockets
+numpy
+opencv-python            # 'cv2'
+
+# Hardware. Only needed for HW mode - SIM mode runs with none of these installed,
+# which is what makes the whole UI developable and testable off the robot.
+adafruit-circuitpython-pca9685
+adafruit-blinka          # provides 'board' + 'busio'
+
+# Optional: object detection. The model file lives in backend/models/.
+ultralytics
+torch
+
+# Voice recognition is NOT a pip package: whisper.cpp is a binary this talks to over a
+# pipe, and capture is `arecord` from alsa-utils. Both are installed by ./setup_voice.sh.
+# Without them the Audio tab runs in SIM and everything except the microphone works.

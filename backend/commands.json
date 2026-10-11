@@ -1,0 +1,182 @@
+{
+  "commands": [
+    {
+      "id": 1,
+      "enabled": true,
+      "label": {
+        "en": "Sit down",
+        "ro": "\u0218ezi",
+        "zh": "\u5750\u4e0b"
+      },
+      "phrases": {
+        "en": [
+          "sit down",
+          "sit up",
+          "suki sit"
+        ],
+        "ro": [
+          "\u0219ezi",
+          "stai jos",
+          "a\u0219eaz\u0103-te"
+        ],
+        "zh": [
+          "\u5750\u4e0b",
+          "\u5750\u597d"
+        ]
+      },
+      "target": "seq:2"
+    },
+    {
+      "id": 2,
+      "enabled": true,
+      "label": {
+        "en": "Stand up",
+        "ro": "Ridic\u0103-te",
+        "zh": "\u7ad9\u8d77\u6765"
+      },
+      "phrases": {
+        "en": [
+          "stand up",
+          "get up",
+          "suki stand"
+        ],
+        "ro": [
+          "ridic\u0103-te",
+          "\u00een picioare",
+          "sus"
+        ],
+        "zh": [
+          "\u7ad9\u8d77\u6765",
+          "\u8d77\u7acb"
+        ]
+      },
+      "target": "seq:1"
+    },
+    {
+      "id": 3,
+      "enabled": true,
+      "label": {
+        "en": "Hold position",
+        "ro": "\u021aine pozi\u021bia",
+        "zh": "\u4fdd\u6301\u59ff\u52bf"
+      },
+      "phrases": {
+        "en": [
+          "hold position",
+          "hold still",
+          "engage the legs"
+        ],
+        "ro": [
+          "\u021bine pozi\u021bia",
+          "stai a\u0219a",
+          "blocheaz\u0103 picioarele"
+        ],
+        "zh": [
+          "\u4fdd\u6301\u59ff\u52bf",
+          "\u522b\u52a8"
+        ]
+      },
+      "target": "engage"
+    },
+    {
+      "id": 4,
+      "enabled": true,
+      "label": {
+        "en": "Relax",
+        "ro": "Relaxeaz\u0103-te",
+        "zh": "\u653e\u677e"
+      },
+      "phrases": {
+        "en": [
+          "relax",
+          "go limp",
+          "let go"
+        ],
+        "ro": [
+          "relaxeaz\u0103-te",
+          "las\u0103-te moale",
+          "d\u0103 drumul"
+        ],
+        "zh": [
+          "\u653e\u677e",
+          "\u677e\u5f00"
+        ]
+      },
+      "target": "relax"
+    },
+    {
+      "id": 5,
+      "enabled": true,
+      "label": {
+        "en": "Emergency stop",
+        "ro": "Oprire de urgen\u021b\u0103",
+        "zh": "\u6025\u505c"
+      },
+      "phrases": {
+        "en": [
+          "emergency stop",
+          "suki stop now",
+          "kill the motors"
+        ],
+        "ro": [
+          "oprire de urgen\u021b\u0103",
+          "opre\u0219te tot",
+          "taie motoarele"
+        ],
+        "zh": [
+          "\u6025\u505c",
+          "\u7d27\u6025\u505c\u6b62"
+        ]
+      },
+      "target": "estop"
+    },
+    {
+      "id": 6,
+      "enabled": true,
+      "label": {
+        "en": "Start recording",
+        "ro": "\u00cencepe \u00eenregistrarea",
+        "zh": "\u5f00\u59cb\u5f55\u97f3"
+      },
+      "phrases": {
+        "en": [
+          "start recording",
+          "begin recording"
+        ],
+        "ro": [
+          "\u00eencepe \u00eenregistrarea",
+          "porne\u0219te \u00eenregistrarea"
+        ],
+        "zh": [
+          "\u5f00\u59cb\u5f55\u97f3",
+          "\u5f00\u59cb\u5f55\u5236"
+        ]
+      },
+      "target": "record_start"
+    },
+    {
+      "id": 7,
+      "enabled": true,
+      "label": {
+        "en": "Stop recording",
+        "ro": "Opre\u0219te \u00eenregistrarea",
+        "zh": "\u505c\u6b62\u5f55\u97f3"
+      },
+      "phrases": {
+        "en": [
+          "stop recording",
+          "end recording"
+        ],
+        "ro": [
+          "opre\u0219te \u00eenregistrarea",
+          "termin\u0103 \u00eenregistrarea"
+        ],
+        "zh": [
+          "\u505c\u6b62\u5f55\u97f3",
+          "\u7ed3\u675f\u5f55\u97f3"
+        ]
+      },
+      "target": "record_stop"
+    }
+  ]
+}

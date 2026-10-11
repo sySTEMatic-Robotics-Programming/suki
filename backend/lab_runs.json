@@ -1,0 +1,358 @@
+{
+  "runs": {
+    "5afd865fbcd2": {
+      "_meta": {
+        "name": "2026-08-02_12-53.png",
+        "w": 1280,
+        "h": 837,
+        "when": 1785702128.5271244
+      },
+      "yolo26n.pt": {
+        "conf": 0.4,
+        "imgsz": 640,
+        "when": 1785702132.19948,
+        "dets": [
+          {
+            "label": "person",
+            "conf": 0.864,
+            "box": [
+              1052,
+              392,
+              121,
+              258
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.864,
+            "box": [
+              524,
+              354,
+              107,
+              83
+            ]
+          },
+          {
+            "label": "person",
+            "conf": 0.856,
+            "box": [
+              955,
+              368,
+              123,
+              266
+            ]
+          },
+          {
+            "label": "person",
+            "conf": 0.778,
+            "box": [
+              1198,
+              389,
+              81,
+              352
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.698,
+            "box": [
+              632,
+              334,
+              56,
+              44
+            ]
+          },
+          {
+            "label": "person",
+            "conf": 0.609,
+            "box": [
+              779,
+              328,
+              24,
+              69
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.524,
+            "box": [
+              100,
+              332,
+              138,
+              61
+            ]
+          },
+          {
+            "label": "person",
+            "conf": 0.449,
+            "box": [
+              889,
+              340,
+              32,
+              81
+            ]
+          },
+          {
+            "label": "stop sign",
+            "conf": 0.442,
+            "box": [
+              51,
+              367,
+              64,
+              57
+            ]
+          }
+        ],
+        "error": null,
+        "ms": 2034,
+        "out": "5afd865fbcd2__yolo26n.pt.out.jpg"
+      },
+      "trafficeu.pt": {
+        "conf": 0.4,
+        "imgsz": 640,
+        "when": 1785702134.2698045,
+        "dets": [
+          {
+            "label": "mand_pass_right",
+            "conf": 0.927,
+            "box": [
+              50,
+              365,
+              65,
+              56
+            ]
+          },
+          {
+            "label": "forb_stopping",
+            "conf": 0.886,
+            "box": [
+              808,
+              251,
+              46,
+              43
+            ]
+          }
+        ],
+        "error": null,
+        "ms": 2233,
+        "out": "5afd865fbcd2__trafficeu.pt.out.jpg"
+      }
+    },
+    "724759d791b4": {
+      "_meta": {
+        "name": "2026-08-02_21-42.png",
+        "w": 1280,
+        "h": 544,
+        "when": 1785702156.07543
+      },
+      "yolo26n.pt": {
+        "conf": 0.4,
+        "imgsz": 640,
+        "when": 1785702177.6517706,
+        "dets": [
+          {
+            "label": "car",
+            "conf": 0.887,
+            "box": [
+              717,
+              352,
+              149,
+              85
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.624,
+            "box": [
+              658,
+              311,
+              43,
+              29
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.605,
+            "box": [
+              226,
+              302,
+              31,
+              17
+            ]
+          },
+          {
+            "label": "person",
+            "conf": 0.531,
+            "box": [
+              1159,
+              327,
+              37,
+              80
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.52,
+            "box": [
+              340,
+              301,
+              52,
+              20
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.51,
+            "box": [
+              302,
+              299,
+              38,
+              22
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.474,
+            "box": [
+              190,
+              303,
+              21,
+              13
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.454,
+            "box": [
+              406,
+              304,
+              42,
+              17
+            ]
+          }
+        ],
+        "error": null,
+        "ms": 748,
+        "out": "724759d791b4__yolo26n.pt.out.jpg"
+      },
+      "trafficeu.pt": {
+        "conf": 0.4,
+        "imgsz": 640,
+        "when": 1785702178.4238214,
+        "dets": [
+          {
+            "label": "info_crosswalk",
+            "conf": 0.779,
+            "box": [
+              741,
+              231,
+              21,
+              21
+            ]
+          }
+        ],
+        "error": null,
+        "ms": 824,
+        "out": "724759d791b4__trafficeu.pt.out.jpg"
+      }
+    },
+    "f716ee81811f": {
+      "_meta": {
+        "name": "2026-08-02_21-41.png",
+        "w": 1280,
+        "h": 671,
+        "when": 1785702206.0406048
+      },
+      "yolo26n.pt": {
+        "conf": 0.4,
+        "imgsz": 640,
+        "when": 1785702210.937942,
+        "dets": [
+          {
+            "label": "car",
+            "conf": 0.892,
+            "box": [
+              509,
+              351,
+              142,
+              115
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.848,
+            "box": [
+              275,
+              350,
+              174,
+              92
+            ]
+          },
+          {
+            "label": "car",
+            "conf": 0.692,
+            "box": [
+              495,
+              327,
+              49,
+              37
+            ]
+          }
+        ],
+        "error": null,
+        "ms": 898,
+        "out": "f716ee81811f__yolo26n.pt.out.jpg"
+      },
+      "trafficeu.pt": {
+        "conf": 0.4,
+        "imgsz": 640,
+        "when": 1785702211.8562846,
+        "dets": [
+          {
+            "label": "mand_pass_left_right",
+            "conf": 0.874,
+            "box": [
+              980,
+              365,
+              50,
+              46
+            ]
+          },
+          {
+            "label": "prio_give_way",
+            "conf": 0.828,
+            "box": [
+              726,
+              236,
+              20,
+              19
+            ]
+          },
+          {
+            "label": "prio_give_way",
+            "conf": 0.724,
+            "box": [
+              201,
+              239,
+              18,
+              17
+            ]
+          },
+          {
+            "label": "info_crosswalk",
+            "conf": 0.427,
+            "box": [
+              725,
+              254,
+              20,
+              21
+            ]
+          }
+        ],
+        "error": null,
+        "ms": 883,
+        "out": "f716ee81811f__trafficeu.pt.out.jpg"
+      }
+    }
+  }
+}

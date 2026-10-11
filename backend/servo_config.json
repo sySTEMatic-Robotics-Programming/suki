@@ -1,0 +1,169 @@
+{
+  "speed_us_per_s": 900,
+  "pulse_us": 0,
+  "pulse_delay_ms": 5,
+  "map": {
+    "0": [
+      "BL",
+      "thigh"
+    ],
+    "1": [
+      "BL",
+      "knee"
+    ],
+    "2": [
+      "BL",
+      "hip"
+    ],
+    "4": [
+      "BR",
+      "thigh"
+    ],
+    "5": [
+      "BR",
+      "knee"
+    ],
+    "6": [
+      "BR",
+      "hip"
+    ],
+    "8": [
+      "FL",
+      "thigh"
+    ],
+    "9": [
+      "FL",
+      "knee"
+    ],
+    "10": [
+      "FL",
+      "hip"
+    ],
+    "12": [
+      "FR",
+      "thigh"
+    ],
+    "13": [
+      "FR",
+      "knee"
+    ],
+    "14": [
+      "FR",
+      "hip"
+    ]
+  },
+  "servos": {
+    "0": {
+      "name": "Back-Left thigh",
+      "min": 500,
+      "max": 2500,
+      "invert": false,
+      "enabled": true
+    },
+    "1": {
+      "name": "Back-Left knee",
+      "min": 500,
+      "max": 1800,
+      "invert": true,
+      "enabled": true
+    },
+    "2": {
+      "name": "Back-Left hip",
+      "min": 1000,
+      "max": 1800,
+      "invert": true,
+      "enabled": false
+    },
+    "3": {
+      "name": "\u2014 unused \u2014",
+      "min": 500,
+      "max": 2500,
+      "invert": false,
+      "enabled": false
+    },
+    "4": {
+      "name": "Back-Right thigh",
+      "min": 500,
+      "max": 2500,
+      "invert": true,
+      "enabled": true
+    },
+    "5": {
+      "name": "Back-Right knee",
+      "min": 500,
+      "max": 1800,
+      "invert": false,
+      "enabled": true
+    },
+    "6": {
+      "name": "Back-Right hip",
+      "min": 1050,
+      "max": 1800,
+      "invert": false,
+      "enabled": false
+    },
+    "7": {
+      "name": "\u2014 unused \u2014",
+      "min": 500,
+      "max": 2500,
+      "invert": false,
+      "enabled": false
+    },
+    "8": {
+      "name": "Front-Left thigh",
+      "min": 500,
+      "max": 2500,
+      "invert": false,
+      "enabled": true
+    },
+    "9": {
+      "name": "Front-Left knee",
+      "min": 500,
+      "max": 1800,
+      "invert": true,
+      "enabled": true
+    },
+    "10": {
+      "name": "Front-Left hip",
+      "min": 700,
+      "max": 1150,
+      "invert": false,
+      "enabled": false
+    },
+    "11": {
+      "name": "\u2014 unused \u2014",
+      "min": 500,
+      "max": 2500,
+      "invert": false,
+      "enabled": false
+    },
+    "12": {
+      "name": "Front-Right thigh",
+      "min": 500,
+      "max": 2500,
+      "invert": true,
+      "enabled": true
+    },
+    "13": {
+      "name": "Front-Right knee",
+      "min": 500,
+      "max": 1800,
+      "invert": false,
+      "enabled": true
+    },
+    "14": {
+      "name": "Front-Right hip",
+      "min": 1700,
+      "max": 2050,
+      "invert": false,
+      "enabled": false
+    },
+    "15": {
+      "name": "\u2014 unused \u2014",
+      "min": 500,
+      "max": 2500,
+      "invert": false,
+      "enabled": false
+    }
+  }
+}

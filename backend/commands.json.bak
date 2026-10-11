@@ -1,0 +1,182 @@
+{
+  "commands": [
+    {
+      "id": 1,
+      "enabled": true,
+      "label": {
+        "en": "Sit down",
+        "ro": "Șezi",
+        "zh": "坐下"
+      },
+      "phrases": {
+        "en": [
+          "sit down",
+          "sit up",
+          "suki sit"
+        ],
+        "ro": [
+          "șezi",
+          "stai jos",
+          "așează-te"
+        ],
+        "zh": [
+          "坐下",
+          "坐好"
+        ]
+      },
+      "target": "pose:1"
+    },
+    {
+      "id": 2,
+      "enabled": true,
+      "label": {
+        "en": "Stand up",
+        "ro": "Ridică-te",
+        "zh": "站起来"
+      },
+      "phrases": {
+        "en": [
+          "stand up",
+          "get up",
+          "suki stand"
+        ],
+        "ro": [
+          "ridică-te",
+          "în picioare",
+          "sus"
+        ],
+        "zh": [
+          "站起来",
+          "起立"
+        ]
+      },
+      "target": "pose:6"
+    },
+    {
+      "id": 3,
+      "enabled": true,
+      "label": {
+        "en": "Hold position",
+        "ro": "Ține poziția",
+        "zh": "保持姿势"
+      },
+      "phrases": {
+        "en": [
+          "hold position",
+          "hold still",
+          "engage the legs"
+        ],
+        "ro": [
+          "ține poziția",
+          "stai așa",
+          "blochează picioarele"
+        ],
+        "zh": [
+          "保持姿势",
+          "别动"
+        ]
+      },
+      "target": "engage"
+    },
+    {
+      "id": 4,
+      "enabled": true,
+      "label": {
+        "en": "Relax",
+        "ro": "Relaxează-te",
+        "zh": "放松"
+      },
+      "phrases": {
+        "en": [
+          "relax",
+          "go limp",
+          "let go"
+        ],
+        "ro": [
+          "relaxează-te",
+          "lasă-te moale",
+          "dă drumul"
+        ],
+        "zh": [
+          "放松",
+          "松开"
+        ]
+      },
+      "target": "relax"
+    },
+    {
+      "id": 5,
+      "enabled": true,
+      "label": {
+        "en": "Emergency stop",
+        "ro": "Oprire de urgență",
+        "zh": "急停"
+      },
+      "phrases": {
+        "en": [
+          "emergency stop",
+          "suki stop now",
+          "kill the motors"
+        ],
+        "ro": [
+          "oprire de urgență",
+          "oprește tot",
+          "taie motoarele"
+        ],
+        "zh": [
+          "急停",
+          "紧急停止"
+        ]
+      },
+      "target": "estop"
+    },
+    {
+      "id": 6,
+      "enabled": true,
+      "label": {
+        "en": "Start recording",
+        "ro": "Începe înregistrarea",
+        "zh": "开始录音"
+      },
+      "phrases": {
+        "en": [
+          "start recording",
+          "begin recording"
+        ],
+        "ro": [
+          "începe înregistrarea",
+          "pornește înregistrarea"
+        ],
+        "zh": [
+          "开始录音",
+          "开始录制"
+        ]
+      },
+      "target": "record_start"
+    },
+    {
+      "id": 7,
+      "enabled": true,
+      "label": {
+        "en": "Stop recording",
+        "ro": "Oprește înregistrarea",
+        "zh": "停止录音"
+      },
+      "phrases": {
+        "en": [
+          "stop recording",
+          "end recording"
+        ],
+        "ro": [
+          "oprește înregistrarea",
+          "termină înregistrarea"
+        ],
+        "zh": [
+          "停止录音",
+          "结束录音"
+        ]
+      },
+      "target": "record_stop"
+    }
+  ]
+}

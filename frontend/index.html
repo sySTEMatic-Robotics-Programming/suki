@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0a18" />
+  <title>Suki</title>
+  <link rel="stylesheet" href="/css/style.css?v=2026-08-02-voice-1" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span>Suki</span></div>
+    <div class="stats">
+      <span id="mode" class="badge sim">SIM</span>
+      <span id="conn" class="dot off" title="connection"></span>
+      <span id="fps" class="stat">-- fps</span>
+      <span id="hz" class="stat" title="motion loop rate — should be 50 Hz">-- Hz</span>
+      <span id="build" class="stat mono"></span>
+    </div>
+    <button id="micbtn" class="micbtn" type="button" title="voice commands">MIC</button>
+    <button id="estop" class="estop">E-STOP</button>
+  </header>
+
+  <p id="fault" class="fault hidden"></p>
+
+  <main>
+    <section class="camera">
+      <img id="cam" src="/stream.mjpg" alt="camera" />
+      <div class="overlay">
+        <span id="light" class="chip hidden"></span>
+        <span id="alert" class="chip alert hidden"></span>
+      </div>
+      <button id="cam-full" class="camfull" type="button"
+        title="fullscreen — camera, actions and the stick">⛶</button>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab" data-tab="drive">Drive</button>
+      <button class="tab active" data-tab="calibration">Calibration</button>
+      <button class="tab" data-tab="sim">Simulator</button>
+      <button class="tab" data-tab="vision">Vision</button>
+      <button class="tab" data-tab="audio">Audio</button>
+      <button class="tab" data-tab="auto">Auto</button>
+    </nav>
+
+    <section id="tab-drive" class="panel">
+      <div class="drvgrid">
+        <div class="simbox drvstickbox">
+          <div class="vhead">WALK</div>
+          <div id="drv-stick" class="jspad"></div>
+          <p id="drv-read" class="drvread"></p>
+          <p id="drv-read-sub" class="muted small"></p>
+        </div>
+
+        <div class="simbox">
+          <div class="vhead">ACTIONS</div>
+          <div id="drv-actions" class="drvacts"></div>
+          <p class="muted small">Recorded poses, off the Calibration tab. These
+            <b>do move the robot</b>.</p>
+          <button id="drv-full" class="btn drvfullbtn" type="button">Fullscreen
+            camera</button>
+        </div>
+      </div>
+
+      <div class="vhead drvlegs-h">LEGS — corridor, taught shapes, and where each
+        joint is right now</div>
+      <div id="drv-legs" class="ccards"></div>
+      <p class="muted small">Read-only here. To drag a point or move a joint, use the
+        Calibration tab.</p>
+    </section>
+
+    <section id="tab-calibration" class="panel active">
+      <details class="section">
+        <summary>
+          <span class="sec-t">Hardware</span>
+          <span class="sec-sub">every channel, what it is holding, and which way
+            round it turns</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar">
+            <button id="hw-test" class="btn" type="button"></button>
+            <span id="hw-test-state" class="legstate"></span>
+            <span class="grow"></span>
+            <span class="muted small">Layout</span>
+            <div class="seg" id="hw-view"></div>
+          </div>
+          <p id="hw-test-note" class="note warn hidden"></p>
+          <div id="hw-cards" class="lcards hidden"></div>
+          <div id="hw-list" class="tablewrap"><table class="stable" id="stable"></table></div>
+          <details class="help hidden" id="hw-help-cards">
+            <summary>how this reads</summary>
+            <p>The four legs as they sit on the robot, seen from above, <b>front at the
+              top</b>. Each bar is the servo's whole electrical travel, 500–2500 µs; the
+              bright part is what this joint is allowed, and the marker is where it is
+              now. Red is a joint pressed against its own end stop, which stalls it. The
+              channel map, the min/max fields and the hardware test live in the list.</p>
+          </details>
+          <details class="help" id="hw-help-list">
+            <summary>what these columns do</summary>
+            <p><b>channel</b> is which of the driver's sixteen outputs a motor is plugged
+              into — picking one another motor already has <b>swaps the two</b>, carrying
+              calibration, position and saved poses with them. Either way the robot goes
+              limp first, because those outputs are about to carry a different servo's
+              pulse.</p>
+            <p><b>inverted</b> mirrors the number onto the pulse; the wire is unchanged
+              across the toggle, so nothing jerks. <b>on</b> off holds the channel
+              actively limp. <b>on wire</b> is what the servo really sees — flipping
+              <b>inverted</b> and dragging again is how you find which way a motor
+              turns.</p>
+          </details>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Leg limits &amp; manual move</span>
+          <span class="sec-sub">the knee's allowed range against the thigh, and the
+            two sliders that move inside it</span>
+        </summary>
+        <div class="sec-body" id="cal-body">
+          <div class="legbar">
+            <label class="pick">Leg
+              <select id="leg-pick"></select>
+            </label>
+            <span id="leg-state" class="legstate"></span>
+            <span class="grow"></span>
+            <span class="muted small">Layout</span>
+            <div class="seg" id="cal-view"></div>
+            <button id="leg-hold" class="btn" type="button"></button>
+          </div>
+
+          <div id="cal-cards" class="ccards hidden"></div>
+
+          <div class="calgrid" id="cal-single">
+            <div class="chartwrap">
+              <div class="modebar" id="chart-mode">
+                <button class="mbtn active" data-mode="move" type="button">Move leg</button>
+                <button class="mbtn" data-mode="edit" type="button">Edit limits</button>
+                <button class="mbtn" data-mode="points" type="button">Draw points</button>
+                <button class="mbtn" data-mode="draw" type="button">Pencil</button>
+              </div>
+              <p id="limp-warn" class="note warn hidden"></p>
+              <div id="chart" class="chart"></div>
+              <p class="muted small chart-help" id="chart-help"></p>
+              <p id="leg-note" class="note hidden"></p>
+              <div id="sk-panel" class="sk hidden"></div>
+              <details class="sub" id="pts-sec" open>
+                <summary><span class="sec-t">Walking points</span>
+                  <span class="sec-sub">named shapes, drawn on the chart above</span>
+                </summary>
+                <div id="pts-panel" class="pts"></div>
+              </details>
+
+              <details class="sub" id="wt-sec" open>
+                <summary><span class="sec-t">Walk test</span>
+                  <span class="sec-sub">step the points on one leg, or run all four —
+                    <b>this moves the robot</b></span>
+                </summary>
+                <div id="wt-panel" class="pts"></div>
+              </details>
+            </div>
+
+            <div class="sliders" id="sliders"></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Pulsed motion</span>
+          <span class="sec-sub">move in steps, one leg at a time, so the battery is
+            never asked for four legs at once</span>
+        </summary>
+        <div class="sec-body">
+          <label class="vslider">Pulse size
+            <input type="range" id="pulse-us" min="0" max="400" step="10" value="0" />
+            <span id="pulse-us-v" class="setval">off</span></label>
+          <label class="vslider">Gap when the turn changes
+            <input type="range" id="pulse-ms" min="0" max="200" step="1" value="50" />
+            <span id="pulse-ms-v" class="setval">50 ms</span></label>
+          <details class="help">
+            <summary>when the gap is actually waited out</summary>
+            <p>Only when one leg stops and <b>another</b> starts — that is when the rail
+              needs to recover. A leg moving on its own has nobody to hand over to, so it
+              runs straight through at the speed limit. The motion loop is 50 Hz, so
+              anything under 20 ms is the same as 0.</p>
+          </details>
+          <p id="pulse-state" class="muted small mono"></p>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Actions</span>
+          <span class="sec-sub">saved poses of the eight leg motors</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar">
+            <button id="act-record" class="btn" type="button"
+                    title="save where the eight leg motors are right now">
+              Record current position</button>
+            <button id="act-return" class="btn" type="button"
+                    title="engage and drive back to where the robot was before it was
+                           last shut down">
+              Return to last position</button>
+          </div>
+          <p id="act-note" class="note hidden"></p>
+          <div class="tablewrap"><table class="atable" id="atable"></table></div>
+
+          <details class="sub" id="seq-sec">
+            <summary><span class="sec-t">Sequences</span>
+              <span class="sec-sub">play saved poses in order — and back again</span>
+            </summary>
+            <div id="seq-panel" class="sq"></div>
+          </details>
+        </div>
+      </details>
+    </section>
+
+    <section id="tab-sim" class="panel">
+      <p class="note sim-warn">This tab <b>never sends anything to the robot</b>. The
+        legs are drawn from the measured geometry — <b>107 mm</b> femur, <b>138 mm</b>
+        tibia, and each joint's own pulse-to-angle curve — so <b>Live pose</b> and
+        <b>Points</b> are this robot. The <b>gait</b> is still invented.
+        The green shading under the feet is <b>the arc that was actually measured</b>;
+        anything drawn in amber is reachable but its angles come off the end of a
+        two-point line. <b>REACH</b> is why the step height is single figures.</p>
+
+      <div class="simtop">
+        <div class="modebar" id="sim-mode">
+          <button class="mbtn active" data-mode="gait" type="button">Gait</button>
+          <button class="mbtn" data-mode="ik" type="button">Manual IK</button>
+          <button class="mbtn" data-mode="live" type="button">Live pose</button>
+          <button class="mbtn" data-mode="points" type="button">Points</button>
+        </div>
+        <span class="grow"></span>
+        <button id="sim-play" class="btn" type="button">Pause</button>
+        <button id="sim-reset" class="btn" type="button">Reset</button>
+      </div>
+
+      <div class="simgrid">
+        <div class="simstage">
+          <div class="simcanvas">
+            <div class="simcap">SIDE — the leg nearest you is drawn solid</div>
+            <canvas id="sim-side"></canvas>
+            <p id="sim-hint" class="simhint muted"></p>
+          </div>
+          <div class="simpair">
+            <div class="simcanvas">
+              <div class="simcap">TOP — where it is going, and the support polygon</div>
+              <canvas id="sim-top"></canvas>
+            </div>
+            <div class="simcanvas" id="sim-diagbox">
+              <div class="simcap">CYCLE — filled is a foot on the ground</div>
+              <canvas id="sim-diag"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="simside">
+          <div class="simbox" id="sim-drivebox">
+            <div class="vhead">DRIVE</div>
+            <div class="seg simseg" id="sim-drivemode">
+              <button class="mbtn" data-dm="free" type="button">Free</button>
+              <button class="mbtn active" data-dm="stick" type="button">Stick</button>
+              <button class="mbtn" data-dm="auto" type="button">Auto</button>
+            </div>
+            <div id="sim-stick" class="jspad simjspad"></div>
+            <div class="hidden" id="sim-autobox">
+              <div class="seg simseg" id="sim-autopick"></div>
+            </div>
+            <label class="switch"><input type="checkbox" id="sim-trail" checked />
+              Leave a trail</label>
+            <div id="sim-driveread" class="simgeo muted small"></div>
+          </div>
+          <div class="simbox" id="sim-gaitbox">
+            <div class="vhead">GAIT</div>
+            <div class="seg simseg" id="sim-gait"></div>
+            <div id="sim-sliders-gait"></div>
+          </div>
+          <div class="simbox" id="sim-geobox">
+            <div class="vhead">MEASURED</div>
+            <div id="sim-geo" class="simgeo muted small">waiting for /api/geometry…</div>
+            <label class="switch"><input type="checkbox" id="sim-ghost" checked />
+              Draw the foot's path</label>
+          </div>
+          <div class="simbox" id="sim-reachbox">
+            <div class="vhead">REACH</div>
+            <div id="sim-reach" class="simgeo muted small"></div>
+          </div>
+          <div class="simbox hidden" id="sim-ptsbox">
+            <div class="vhead">WALKING POINTS</div>
+            <div class="seg simseg" id="sim-ptsmode">
+              <button class="mbtn active" data-pm="step" type="button">Step</button>
+              <button class="mbtn" data-pm="walk" type="button">Walk all</button>
+            </div>
+            <div class="seg simseg" id="sim-ptsleg"></div>
+            <div class="stepbar">
+              <button id="sim-ptsprev" class="btn stepbtn" type="button"
+                title="previous point (←)">◀</button>
+              <span id="sim-ptscount" class="mono stepcount">—</span>
+              <button id="sim-ptsnext" class="btn stepbtn" type="button"
+                title="next point (→)">▶</button>
+            </div>
+            <div id="sim-stepinfo" class="simgeo muted small"></div>
+            <div id="sim-ptsinfo" class="muted small"></div>
+          </div>
+          <div class="simbox">
+            <div class="vhead">LEGS</div>
+            <div class="tablewrap"><table class="simtbl" id="sim-table"></table></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-vision" class="panel">
+      <div class="vstat">
+        <div class="vchip"><span>DETECTOR</span><b id="v-detector" class="vval">--</b></div>
+        <div class="vchip"><span>TRAFFIC</span><b id="v-light" class="vval">none</b></div>
+        <div class="vchip"><span>CAMERA</span><b id="v-cam" class="vval">--</b></div>
+        <div class="vchip"><span>FPS</span><b id="v-fps" class="vval">--</b></div>
+      </div>
+      <div class="vctrl">
+        <label class="switch"><input type="checkbox" id="t-camera" checked />
+          <b>Camera</b> — off releases the webcam entirely</label>
+        <p class="muted small" id="cam-off-note">The picture, the detector and the
+          traffic light all stop when this is off, and the USB device is handed back.
+          Turn it off when nobody is watching: it is the cheapest core this robot
+          has.</p>
+        <label class="switch"><input type="checkbox" id="t-traffic" checked />
+          Traffic-light detection</label>
+        <label class="switch"><input type="checkbox" id="t-objects" checked />
+          Object detection (YOLO)</label>
+        <label class="vslider">Confidence
+          <input type="range" id="yolo-conf" min="5" max="95" value="40" />
+          <span id="yolo-conf-v" class="setval">0.40</span></label>
+        <p class="muted small vmodel">Live detector: <b class="mono"
+          id="v-model">—</b> — <b>one model, always</b>. A second continuous YOLO pass
+          would share the four cores the 50 Hz motion loop needs. Running more than one
+          together is what <b>Simulation</b> below is for.</p>
+      </div>
+      <div class="vhead">DETECTIONS</div>
+      <ul id="detections" class="detections"><li class="muted">no detections</li></ul>
+
+      <details class="section" id="lab-sec">
+        <summary>
+          <span class="sec-t">Simulation</span>
+          <span class="sec-sub">your pictures, your models, and what each one
+            finds — a bench, not the live detector</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar">
+            <label class="btn lab-pickbtn">Add pictures
+              <input type="file" id="lab-file" accept="image/*" multiple hidden /></label>
+            <button id="lab-grab" class="btn" type="button"
+              title="save the frame that is on screen right now">Capture from camera</button>
+            <span class="grow"></span>
+            <span id="lab-count" class="legstate"></span>
+          </div>
+          <p id="lab-up" class="muted small hidden"></p>
+
+          <div id="lab-strip" class="labstrip"></div>
+
+          <div class="labgrid">
+            <div class="labview">
+              <div id="lab-canvas" class="labcanvas">
+                <p class="muted empty-tab">Add a picture, or capture the camera, to
+                  start.</p>
+              </div>
+              <div id="lab-legend" class="lablegend"></div>
+            </div>
+
+            <div class="labside">
+              <div class="vhead">MODELS</div>
+              <div id="lab-models" class="labmodels"></div>
+              <p class="muted small">Every <b>.pt</b> in <b class="mono">backend/models</b>
+                — copy one in over ssh and it appears here on its own.
+                <b>No upload button, on purpose:</b> a <b>.pt</b> is a pickle, loading
+                one runs code, and this program has no password on it.</p>
+
+              <label class="vslider">Confidence
+                <input type="range" id="lab-conf" min="1" max="95" value="40" />
+                <span id="lab-conf-v" class="setval mono">0.40</span></label>
+              <label class="vslider">Image size
+                <input type="range" id="lab-imgsz" min="160" max="1280" step="32"
+                  value="640" />
+                <span id="lab-imgsz-v" class="setval mono">640</span></label>
+              <p class="muted small">Bigger sees smaller things and costs about the
+                square of it. The live detector runs at 256 to keep up; this does not
+                have to.</p>
+
+              <div class="legbar">
+                <button id="lab-run" class="btn" type="button">Run on this picture</button>
+              </div>
+              <p id="lab-busy" class="note hidden"></p>
+            </div>
+          </div>
+
+          <div class="vhead">TRAFFIC LIGHT</div>
+          <div id="lab-light" class="lablight"></div>
+
+          <div class="vhead">WHAT EACH MODEL FOUND</div>
+          <div id="lab-kept" class="labkept"></div>
+          <div id="lab-results" class="labresults"></div>
+          <div class="vhead">AGREEMENT</div>
+          <div id="lab-agree" class="labagree"></div>
+        </div>
+      </details>
+    </section>
+
+    <section id="tab-audio" class="panel">
+      <p id="a-fault" class="note hidden"></p>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Microphone</span>
+          <span class="sec-sub">which device, how loud, and what it is hearing</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar nowrap">
+            <select id="mic-dev" class="txt grow"></select>
+            <button id="mic-refresh" class="btn" type="button"
+                    title="rescan for capture devices">⟳</button>
+          </div>
+
+          <div class="legbar">
+            <span class="muted small">Channel</span>
+            <div class="seg" id="seg-ch"></div>
+            <span class="muted small">mono mic: either</span>
+          </div>
+
+          <div class="meterhead">
+            <span>Input level</span><b id="level-v" class="mono">0</b>
+          </div>
+          <div class="meter">
+            <div id="level-bar" class="meter-fill"></div>
+            <div id="level-mark" class="meter-mark"></div>
+          </div>
+
+          <label class="vslider" title="software amplification — raise it until normal
+                 speech pushes the bar well past the marker"><span>Microphone gain</span>
+            <input type="range" id="a-gain" min="1" max="32" step="0.5" />
+            <span id="a-gain-v" class="setval mono">--</span></label>
+
+          <label class="vslider"><span>Speech threshold</span>
+            <input type="range" id="a-thresh" min="50" max="8000" step="10" />
+            <span id="a-thresh-v" class="setval mono">--</span></label>
+          <p class="muted small">Above the room, below your voice. If a moving leg
+            trips it, raise it.</p>
+
+          <label class="vslider"><span>Match strictness</span>
+            <input type="range" id="a-fuzz" min="50" max="100" step="1" />
+            <span id="a-fuzz-v" class="setval mono">--</span></label>
+          <p class="muted small">Below 0.80 the opposite command starts winning.</p>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Listening</span>
+          <span class="sec-sub">the master switch, the language, and what was
+            heard</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar">
+            <label class="switch"><input type="checkbox" id="t-listening" />
+              <b>Listening</b> — act on what is heard</label>
+            <label class="switch"><input type="checkbox" id="t-dryrun" />
+              Dry run (match and show, but do not run it)</label>
+          </div>
+
+          <div class="legbar">
+            <span class="muted small">Spoken language</span>
+            <div class="seg" id="seg-stt"></div>
+          </div>
+          <p class="muted small">Only what whisper <b>decodes as</b> — phrases in all
+            three languages always match.
+            <span id="auto-hint" class="hidden"><b>auto</b> costs real accuracy on
+            two-word commands. Pin one language if you only use one.</span></p>
+
+          <details class="sub" id="stt-sec">
+            <summary><span class="sec-t">Recogniser model</span>
+              <span class="sec-sub" id="stt-now">—</span></summary>
+            <div id="stt-models" class="sttm"></div>
+            <p class="muted small" id="stt-note"></p>
+          </details>
+
+          <div class="legbar nowrap">
+            <input type="text" id="sim-text" class="txt grow"
+                   placeholder="type a phrase — it goes through the same matcher" />
+            <button id="sim-send" class="btn" type="button">Send</button>
+          </div>
+
+          <div class="vhead">HEARD</div>
+          <p id="a-state" class="a-state hidden"></p>
+          <ul id="transcript" class="transcript"></ul>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Recording &amp; live monitor</span>
+          <span class="sec-sub">hear what the robot hears, now or afterwards</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar">
+            <button id="rec-btn" class="btn" type="button">Start recording</button>
+            <span id="rec-state" class="legstate">idle</span>
+            <span class="grow"></span>
+            <button id="mon-btn" class="btn" type="button">Listen live</button>
+          </div>
+          <audio id="mon" class="hidden" controls></audio>
+          <p class="muted small"><b>Headphones for the live monitor</b> — out loud it
+            feeds back and the robot transcribes its own echo.</p>
+          <div class="vhead">RECORDINGS</div>
+          <div id="reclist" class="reclist"></div>
+        </div>
+      </details>
+
+      <details class="section" open>
+        <summary>
+          <span class="sec-t">Voice commands</span>
+          <span class="sec-sub">what to say, in three languages, and what it does</span>
+        </summary>
+        <div class="sec-body">
+          <div class="legbar">
+            <button id="vcmd-add" class="btn" type="button">Add command</button>
+          </div>
+          <p class="muted small">Write every way you actually say it — spare phrasings
+            are free, and one that is nearly another command's costs a wrong move.</p>
+          <div id="vcmdlist"></div>
+        </div>
+      </details>
+    </section>
+
+    <section id="tab-auto" class="panel">
+      <p class="muted empty-tab">Empty for now.</p>
+    </section>
+  </main>
+
+  <div id="fullscreen" class="fs hidden">
+    <div id="fs-cam" class="fs-cam"></div>
+    <div class="fs-top">
+      <span id="fs-conn" class="dot off" title="connection"></span>
+      <span class="grow"></span>
+      <button id="fs-estop" class="estop">E-STOP</button>
+      <button id="fs-close" class="btn fs-close" type="button">✕</button>
+    </div>
+    <div class="fs-bottom">
+      <div id="fs-stick" class="jspad fs-jspad"></div>
+      <div class="fs-right">
+        <div id="fs-actions" class="drvacts fs-acts"></div>
+        <p id="fs-read" class="drvread fs-read"></p>
+        <p id="fs-read-sub" class="muted small fs-read-sub"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/ws.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/stick.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/points.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/sketch.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/calibration.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/actions.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/seq.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/sim.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/vision.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/lab.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/audio.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/walktest.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/drive.js?v=2026-08-02-voice-1"></script>
+  <script src="/js/app.js?v=2026-08-02-voice-1"></script>
+</body>
+</html>
