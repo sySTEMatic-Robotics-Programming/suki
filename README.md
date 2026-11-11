@@ -27,6 +27,13 @@ cu YOLO, de pe o cameră web USB), aude (recunoaștere vocală offline cu whispe
 
 Nu folosește cloud și nici LLM. Toată partea de AI rulează local, pe Pi.
 
+**Scopul principal** al lui Suki este să devină un **câine-ghid (service dog)** pentru
+persoanele nevăzătoare: să le ajute să meargă singure prin oraș, ca pietoni. Robotul
+trebuie să vadă mașinile, semnele de circulație, gropile și culoarea semaforului, să
+spună omului ce e în jur și să se oprească atunci când traversarea nu e sigură.
+Versiunea actuală este prototipul de laborator. Ce mai trebuie făcut până acolo este
+descris în [Planuri de viitor](#planuri-de-viitor).
+
 ## Instrucțiuni de instalare/rulare
 
 - Conectați-vă prin SSH la Raspberry Pi:\
@@ -286,6 +293,173 @@ Conectarea servomotoarelor la canalele PCA9685 (din `backend/config.py`):
 - Impulsurile servomotoarelor sunt între 500 și 2500 µs, cu neutrul la 1500 µs.
   Fiecare servomotor are propriile setări min, max și inversare, salvate în
   `backend/servo_config.json`.
+
+## Planuri de viitor
+
+### Obiectiv: câine-ghid pentru persoane nevăzătoare
+
+Ținta finală este ca Suki să însoțească o persoană nevăzătoare pe stradă, ca un
+câine-ghid. Concret, robotul trebuie să poată:
+
+- să meargă pe trotuar, în fața omului, și să-l ghideze printr-un mâner (ham);
+- să ocolească obstacole: stâlpi, oameni, biciclete, mașini parcate pe trotuar;
+- să se oprească la bordură, la scări și în fața gropilor;
+- să găsească trecerea de pietoni și semaforul de pietoni;
+- să spună când semaforul e verde și să traverseze doar când este sigur;
+- să urmeze un traseu ales vocal („du-mă la farmacie");
+- să **refuze o comandă periculoasă** (de ex. „înainte" când vine o mașină). Câinii-ghid
+  reali fac la fel; se numește *intelligent disobedience*.
+
+### Îmbunătățiri necesare
+
+#### Mecanică și alimentare
+
+| Acum | Ce trebuie |
+|---|---|
+| Înălțime 150 mm, corp 230 mm | Robot mai mare (înălțime ~50–60 cm), ca să poată fi ținut de mâner și să urce o bordură de 15 cm |
+| Servomotoare PWM de hobby, șoldurile oprite | Motoare mai puternice (servomotoare de putere sau motoare BLDC cu reductor), toate cele 12 articulații active |
+| Mersuri învățate manual | Mers dinamic cu echilibru (IMU + control în buclă închisă), pentru teren denivelat, pantă, zăpadă |
+| Probleme cu căderile de tensiune | Baterie dedicată pentru motoare, separată de calculator, autonomie de minimum 1–2 ore |
+| Fără protecție | Carcasă rezistentă la ploaie și praf (minimum IP54) |
+| — | Mâner cu senzor de forță și vibrații (feedback haptic), ca omul să simtă direcția și oprirea |
+
+#### Senzori
+
+| Senzor | Pentru ce |
+|---|---|
+| Cameră stereo / de adâncime | Distanța până la obstacole, bordură, groapă. Calculează adâncimea în hardware, fără să încarce procesorul principal |
+| Cameră cu unghi larg, montată mai sus | Semaforul și semnele sunt deasupra; o cameră la 15 cm de sol nu le vede bine |
+| IMU (accelerometru + giroscop) | Echilibru, detecția căderii, pantă |
+| Senzori ultrasonici / ToF | Obstacole foarte apropiate, sticlă, lucruri pe care camera le ratează |
+| GPS (ideal RTK) + busolă | Navigare pe traseu |
+| Microfon cu mai multe capsule | Comenzi vocale în zgomotul străzii |
+| Difuzor / cască cu conducție osoasă | Mesaje vocale fără să acopere sunetele străzii |
+
+#### Software
+
+- **Tab-ul Auto**: aici intră modul autonom (acum este gol).
+- **Navigare**: hărți offline OpenStreetMap, traseu pe trotuare, localizare GPS + odometrie.
+- **Segmentare**: trotuar, carosabil, trecere de pietoni, bordură, scări, nu doar cutii.
+- **Urmărire în timp** (tracking, de ex. ByteTrack): aceeași mașină este urmărită de la un
+  cadru la altul, ca să se știe dacă se apropie și cu ce viteză.
+- **Semafor cu model dedicat**: culoarea se citește acum cu praguri HSV, care greșesc la
+  soare puternic, noaptea sau cu reflexii. Trebuie un clasificator antrenat, cu clasele
+  `roșu`, `verde`, `galben`, `stins`, `necunoscut`, separat pentru semaforul de pietoni
+  (omulețul) și cel pentru mașini. Decizia „verde" se ia doar după mai multe cadre la
+  rând care sunt de acord.
+- **Rezoluție mai mare**: detecția rulează acum la 256 px. Un semafor la 15 m are doar
+  câțiva pixeli la această rezoluție. Este nevoie de 640 px sau mai mult.
+- **Mesaje vocale (TTS) offline**: „mașină din stânga", „trecere de pietoni în față",
+  „verde, putem traversa".
+- **Siguranță**: watchdog, oprire automată când un senzor nu mai răspunde, jurnal
+  complet al deciziilor. Regula de bază: **când nu este sigur, Suki se oprește**.
+
+### Recunoaștere cu acuratețe mare
+
+Ce trebuie să recunoască Suki și țintele propuse:
+
+| Clasă | Exemple | Țintă propusă |
+|---|---|---|
+| Semafor de pietoni + culoare | roșu, verde, verde intermitent, stins | Detecție ≥ 99% până la 20 m; „verde" fals practic zero (sub 1 la 10.000 decizii) |
+| Vehicule | mașină, autobuz, camion, motocicletă, bicicletă, trotinetă | Detecție ≥ 98% până la 30 m, latență sub 150 ms |
+| Pietoni și animale | persoană, cărucior, câine | Detecție ≥ 97% |
+| Semne de circulație | trecere de pietoni, stop, cedează trecerea, accesul interzis | mAP50 ≥ 0,90 |
+| Pericole la sol | gropi, capace lipsă, bordură, scări, denivelări, bălți | Detecție ≥ 95% până la 5 m |
+| Elemente de navigare | trecere de pietoni (zebră), trotuar, carosabil | Segmentare, IoU ≥ 0,85 |
+
+Erorile nu sunt egale. „Roșu" citit greșit ca „verde" poate fi mortal; „verde" citit ca
+„roșu" înseamnă doar o așteptare în plus. Modelele și pragurile se aleg ca să favorizeze
+oprirea.
+
+De ce latența contează: o mașină cu 50 km/h parcurge ~14 m pe secundă. La 200 ms
+întârziere, mașina a mers deja aproape 3 m până când Suki a reacționat.
+
+### Seturi de date necesare
+
+**Seturi publice** (pentru pre-antrenare):
+
+| Set de date | Ce conține |
+|---|---|
+| [COCO](https://cocodataset.org) | Persoane, vehicule, semafoare (deja folosit de `yolo26n.pt`) |
+| [Mapillary Traffic Sign Dataset](https://www.mapillary.com/dataset/trafficsign) | Peste 300 de tipuri de semne, din toată lumea, inclusiv Europa |
+| [GTSDB / GTSRB](https://benchmark.ini.rub.de) | Semne de circulație germane (similare cu cele din România) |
+| [DriveU Traffic Light Dataset (DTLD)](https://www.uni-ulm.de/in/iui-drive-u/projekte/driveu-traffic-light-dataset/) | Semafoare din orașe germane, cu starea fiecăruia |
+| Pedestrian Traffic Lights (PTL / LYTNet) | Semafoare de pietoni fotografiate din perspectiva pietonului, făcut pentru nevăzători |
+| [Mapillary Vistas](https://www.mapillary.com/dataset/vistas) / [Cityscapes](https://www.cityscapes-dataset.com) | Segmentare stradă: trotuar, bordură, trecere de pietoni |
+| [RDD2022](https://github.com/sekilab/RoadDamageDetector) | Gropi și fisuri în asfalt, din mai multe țări |
+| [BDD100K](https://www.vis.xyz/bdd100k/) | Condiții grele: noapte, ploaie, ceață |
+
+**Set de date propriu** (obligatoriu): seturile publice sunt filmate din mașină, la
+înălțimea unui șofer. Suki vede strada de jos, de pe trotuar, iar semafoarele, semnele și
+trecerile de pietoni din România arată puțin diferit. Este nevoie de:
+
+- imagini filmate chiar cu camera robotului, la înălțimea ei, pe trotuare din România;
+- toate condițiile: zi, noapte, ploaie, zăpadă, soare din față, contre-jour;
+- semafoare de pietoni românești, inclusiv cele cu numărătoare inversă;
+- gropi, capace, bordure și scări de pe trotuare, nu doar de pe carosabil;
+- orientativ **≥ 1.500 de imagini și ≥ 10.000 de obiecte adnotate pentru fiecare clasă**
+  (recomandarea Ultralytics), plus ~10% imagini fără niciun obiect;
+- adnotare cu [CVAT](https://www.cvat.ai) sau [Label Studio](https://labelstud.io),
+  verificată de două persoane pentru clasele critice (semafor, vehicule).
+
+Testarea finală se face pe un set separat, filmat pe străzi pe care modelul nu le-a văzut
+niciodată.
+
+### Performanță de calcul necesară
+
+**Ce metrică contează**
+
+- **TOPS INT8** (tera-operații pe secundă, pe 8 biți): metrica principală. Modelele
+  YOLO se pot rula cuantizate pe 8 biți aproape fără pierdere de acuratețe.
+- **TFLOPS FP16/FP32**: relevant doar dacă modelele rulează fără cuantizare.
+- Cifra din fișa tehnică este un maxim teoretic. Un model real folosește de obicei doar
+  20–40% din el.
+- Ce contează cu adevărat: **cadre pe secundă și latența măsurate pe modelul nostru,
+  la rezoluția noastră**, plus **TOPS/W**, pentru că robotul merge pe baterie.
+
+**Cât calcul trebuie**
+
+| Sarcină | Model exemplu | Cost per cadru | Cadre/s țintă |
+|---|---|---|---|
+| Detecție vehicule, pietoni, semne (640 px) | YOLO26s | ~20 GFLOPs | 15–20 |
+| Segmentare trotuar, trecere, gropi (640 px) | YOLO26s-seg | ~30–40 GFLOPs | 10 |
+| Clasificare culoare semafor (pe decupaj) | CNN mic | < 1 GFLOP | 15–20 |
+| Adâncime | Calculată de camera stereo | 0 pe procesorul principal | 30 |
+
+Total: ~0,7–1 TOPS folosiți efectiv. Cu utilizare reală de 20–40% și o rezervă pentru
+modele mai mari, este nevoie de **minimum ~13 TOPS INT8, recomandat 26 TOPS sau mai mult**.
+
+**Hardware-ul actual față de ce trebuie**
+
+| Metrică | Acum (Raspberry Pi 4, doar CPU) | Necesar pentru stradă |
+|---|---|---|
+| Putere de calcul AI | sub 0,05 TFLOPS FP32 (maxim teoretic, 4 nuclee Cortex-A72), fără accelerator | ≥ 13 TOPS INT8, recomandat ≥ 26 TOPS |
+| Rezoluție detecție | 256 px | ≥ 640 px |
+| Model | YOLO26 nano (~6 GFLOPs la 640 px, ~1 GFLOP la 256 px) | Model „small” sau mai mare (~20–40 GFLOPs), mai multe modele în paralel |
+| Cadre/s detecție | câteva, cu pauză de 0,1 s între rulări | ≥ 15 pentru detecție, ≥ 10 pentru segmentare |
+| Latență cameră → decizie | sute de ms | sub 150 ms |
+| Memorie RAM | partajată cu restul sistemului | ≥ 8 GB |
+| Consum pentru partea de AI | — | sub ~15 W, ca bateria să țină 1–2 ore |
+
+Cu procesorul Pi 4, un YOLO nano la 640 px merge doar cu câteva cadre pe secundă. De
+aceea detecția rulează acum la 256 px și cu pauze. Pentru uz pe stradă, puterea de calcul
+trebuie să crească de câteva sute de ori.
+
+**Eficiența energetică: de ce un accelerator AI**
+
+Suki merge pe baterii și, ca un câine-ghid, trebuie să țină o plimbare întreagă prin
+oraș. Autonomia contează la fel de mult ca puterea de calcul. Un accelerator AI dedicat
+(NPU) ajută direct la asta:
+
+- Un NPU face aceleași operații ca procesorul cu mult mai puțină energie. Procesorul
+  general obține de obicei sub 0,01 TOPS/W la rețele neuronale. Un NPU ajunge la ordinul
+  câtorva TOPS/W, deci de sute de ori mai eficient pe fiecare cadru procesat.
+- Procesorul Pi 4 rulând YOLO în continuu stă aproape de sarcină maximă: consumă mai mult,
+  se încălzește și ajunge să-și scadă singur frecvența (throttling). Cu un accelerator,
+  procesorul rămâne liber pentru bucla de mișcare la 50 Hz, voce și navigare.
+- Energia economisită la calcul rămâne pentru motoare, care consumă oricum cel mai mult.
+  Asta înseamnă mai mulți kilometri pe o încărcare.
+- Ținta este ca toată partea de AI să consume **sub ~15 W**, la **≥ 2 TOPS/W**.
 
 ---
 **© sySTEMatic Robotics**
