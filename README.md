@@ -1,465 +1,462 @@
 # Suki
 
-**Data**: 11.11.2026\
-**Lider proiect**: Ana-Maria Acsinte\
-**Membri proiect**: Tomescu Vlad-Costin, Postelnicu Andrei
+**Date**: 11.11.2026\
+**Project lead**: Ana-Maria Acsinte\
+**Team members**: Tomescu Vlad-Costin, Postelnicu Andrei
 
-## Structura repository-ului
+## Repository structure
 ```text
-├── backend/            # Serverul Python (FastAPI): motoare, cameră, AI, voce
-│   ├── models/         # Modelele YOLO (.pt)
-│   ├── lab/            # Imaginile din Lab și rezultatele adnotate
-│   └── test_*.py       # Teste (pytest)
-├── frontend/           # Interfața web (HTML/CSS/JS, fără build)
+├── backend/            # Python server (FastAPI): motors, camera, AI, voice
+│   ├── models/         # YOLO models (.pt)
+│   ├── lab/            # Lab images and annotated results
+│   └── test_*.py       # Tests (pytest)
+├── frontend/           # Web interface (plain HTML/CSS/JS, no build step)
 │   ├── css/
 │   └── js/
-├── requirements.txt    # Dependențele Python
-├── run.sh              # Pornește serverul pe portul 8000
-├── setup_voice.sh      # Instalează whisper.cpp + modelul și testează microfonul
-└── README.md           # Acest fișier
+├── requirements.txt    # Python dependencies
+├── run.sh              # Starts the server on port 8000
+├── setup_voice.sh      # Installs whisper.cpp + model and tests the microphone
+└── README.md           # This file
 ```
 
-## Descriere proiect
-Suki este un robot patruped (câine-robot) controlat de un Raspberry Pi. Robotul se
-controlează dintr-o pagină web servită chiar de Pi. Suki vede (detecție de obiecte
-cu YOLO, de pe o cameră web USB), aude (recunoaștere vocală offline cu whisper.cpp)
-și merge folosind mersuri învățate manual.
+## About the project
+Suki is a quadruped robot dog driven by a Raspberry Pi. You control it from a web
+page served directly by the Pi. Suki can see (YOLO object detection from a USB
+webcam), hear (offline speech recognition with whisper.cpp), and walk using
+hand-tuned gaits.
 
-Nu folosește cloud și nici LLM. Toată partea de AI rulează local, pe Pi.
+There's no cloud and no LLM involved. All of the AI runs locally on the Pi.
 
-**Scopul principal** al lui Suki este să devină un **câine-ghid (service dog)** pentru
-persoanele nevăzătoare: să le ajute să meargă singure prin oraș, ca pietoni. Robotul
-trebuie să vadă mașinile, semnele de circulație, gropile și culoarea semaforului, să
-spună omului ce e în jur și să se oprească atunci când traversarea nu e sigură.
-Versiunea actuală este prototipul de laborator. Ce mai trebuie făcut până acolo este
-descris în [Planuri de viitor](#planuri-de-viitor).
+**Suki's main goal** is to become a **guide dog (service dog)** for blind and
+visually impaired people, helping them get around the city on foot on their own.
+The robot needs to spot cars, traffic signs, potholes and the color of traffic
+lights, tell the person what's around them, and stop whenever it isn't safe to
+cross. The current version is a lab prototype. What's still left to do is
+described in [Future plans](#future-plans).
 
-## Instrucțiuni de instalare/rulare
+## Installation and usage
 
-- Conectați-vă prin SSH la Raspberry Pi:\
-    `ssh <utilizator>@<ip-pi>`
+- SSH into the Raspberry Pi:\
+    `ssh <user>@<pi-ip>`
 
-- Instalați dependențele:\
+- Install the dependencies:\
     `pip install -r requirements.txt`
 
-- Instalați recunoașterea vocală (whisper.cpp + model, Raspberry Pi OS / Debian):\
+- Install speech recognition (whisper.cpp + model, Raspberry Pi OS / Debian):\
     `./setup_voice.sh`
 
-- Porniți serverul, apoi deschideți `http://<ip-pi>:8000` în browser:\
+- Start the server, then open `http://<pi-ip>:8000` in a browser:\
     `./run.sh`
 
-- Rulați testele:\
+- Run the tests:\
     `cd backend && python3 -m pytest -q`
 
-### Mod SIM
+### SIM mode
 
-Orice componentă hardware este opțională. Interfața rulează pe orice laptop:
+Every piece of hardware is optional, so the interface runs on any laptop:
 
-| Lipsește | Ce se întâmplă |
+| Missing | What happens |
 |---|---|
-| PCA9685 / librăriile I2C | Motoarele rulează în modul **SIM**, nu se trimite nimic |
-| whisper.cpp sau modelul lui | Tab-ul Audio rulează în SIM, textul scris tot pornește comenzi |
-| Camera web | Video-ul arată „NO CAMERA" și reîncearcă la fiecare 10 s |
-| `ultralytics` / `torch` | Detecția de obiecte este oprită, restul funcționează |
+| PCA9685 / I2C libraries | Motors run in **SIM** mode and nothing is sent |
+| whisper.cpp or its model | The Audio tab runs in SIM mode; typed text still triggers commands |
+| Webcam | The video shows "NO CAMERA" and retries every 10 s |
+| `ultralytics` / `torch` | Object detection is disabled; everything else works |
 
-Setați `SUKI_NO_CAMERA=1` ca să nu se deschidă nicio cameră.
+Set `SUKI_NO_CAMERA=1` to keep any camera from being opened.
 
-### Librării folosite
+### Libraries used
 
-| Librărie | Folosită pentru |
+| Library | Used for |
 |---|---|
-| `fastapi`, `uvicorn`, `websockets` | Serverul web și WebSocket-ul |
-| `numpy` | Procesare audio și imagine |
-| `opencv-python` | Cameră, desenare pe imagine, culoarea semaforului |
-| `adafruit-circuitpython-pca9685`, `adafruit-blinka` | Comunicare I2C cu PCA9685 (doar pe robot) |
-| `ultralytics`, `torch` | YOLO (opțional) |
-| [whisper.cpp](https://github.com/ggerganov/whisper.cpp), `alsa-utils` (`arecord`) | Recunoaștere vocală și captură microfon. Nu sunt pachete pip, le instalează `./setup_voice.sh` |
+| `fastapi`, `uvicorn`, `websockets` | Web server and WebSocket |
+| `numpy` | Audio and image processing |
+| `opencv-python` | Camera, drawing on frames, traffic light color |
+| `adafruit-circuitpython-pca9685`, `adafruit-blinka` | I2C communication with the PCA9685 (robot only) |
+| `ultralytics`, `torch` | YOLO (optional) |
+| [whisper.cpp](https://github.com/ggerganov/whisper.cpp), `alsa-utils` (`arecord`) | Speech recognition and microphone capture. These aren't pip packages; `./setup_voice.sh` installs them |
 
-## Documentație software
+## Software documentation
 
-### Arhitectură
-Backend-ul este un server **FastAPI + uvicorn** scris în Python. El controlează
-motoarele, citește camera și microfonul și rulează modelele AI. Frontend-ul este
-HTML/JS simplu, fără build, servit de același server.
+### Architecture
+The backend is a **FastAPI + uvicorn** server written in Python. It drives the
+motors, reads the camera and microphone, and runs the AI models. The frontend is
+plain HTML/JS with no build step, served by the same server.
 
-- Telemetria pleacă spre browser pe WebSocket-ul `/ws`, de 10 ori pe secundă.
-- Video-ul pleacă spre browser ca MJPEG, pe `/stream.mjpg`.
+- Telemetry is pushed to the browser over the `/ws` WebSocket, 10 times per second.
+- Video is streamed to the browser as MJPEG at `/stream.mjpg`.
 
-### Module
+### Modules
 
-| Fișier | Ce face |
+| File | What it does |
 |---|---|
-| `backend/app.py` | Serverul FastAPI, rutele, WebSocket-ul |
-| `backend/controller.py` | Bucla de mișcare la 50 Hz, engage/relax/E-STOP, poziții |
-| `backend/driver.py` | Driverul PCA9685, verificarea cipului, protecția la căderi de tensiune |
-| `backend/corridor.py` | Intervalul sigur al genunchiului pentru fiecare poziție a coapsei |
-| `backend/walk.py` | Punctele de mers (gaits) |
-| `backend/sequence.py` | Secvențele de poziții |
-| `backend/camera.py` | Captura de pe camera web USB, stream MJPEG |
-| `backend/vision.py` | Detecția YOLO + culoarea semaforului |
-| `backend/lab.py` | Banc de test offline pentru modele |
-| `backend/audio.py` | Captura microfonului, detecția vorbirii, înregistrare |
-| `backend/stt.py` | Legătura cu whisper.cpp |
-| `backend/voice.py` | Setări, comenzi vocale, potrivire aproximativă (fuzzy) |
-| `backend/listener.py` | Ascultă vorbirea și pornește comenzile |
-| `backend/config.py` | Toate constantele: canale, limite, viteze, modele |
-| `frontend/` | Interfața web (`index.html`, `js/`, `css/`) |
+| `backend/app.py` | FastAPI server, routes, WebSocket |
+| `backend/controller.py` | 50 Hz motion loop, engage/relax/E-STOP, poses |
+| `backend/driver.py` | PCA9685 driver, chip verification, brownout protection |
+| `backend/corridor.py` | Safe knee range for each thigh position |
+| `backend/walk.py` | Gait points |
+| `backend/sequence.py` | Pose sequences |
+| `backend/camera.py` | USB webcam capture, MJPEG stream |
+| `backend/vision.py` | YOLO detection + traffic light color |
+| `backend/lab.py` | Offline test bench for models |
+| `backend/audio.py` | Microphone capture, speech detection, recording |
+| `backend/stt.py` | whisper.cpp bridge |
+| `backend/voice.py` | Settings, voice commands, fuzzy matching |
+| `backend/listener.py` | Listens for speech and triggers commands |
+| `backend/config.py` | All constants: channels, limits, speeds, models |
+| `frontend/` | Web interface (`index.html`, `js/`, `css/`) |
 
-### Controlul motoarelor
+### Motor control
 
-- **Buclă de mișcare la 50 Hz.** Un fir de execuție dedicat rulează de 50 de ori
-  pe secundă. Cere prioritate real-time de la Linux (`SCHED_FIFO` 10) când are voie.
-- **Rampă de viteză.** Servomotoarele nu sar niciodată direct la țintă. La fiecare
-  pas se apropie de țintă cu o viteză setată: implicit 900 µs/s, interval
-  60–2400 µs/s.
-- **O singură scriere I2C pe pas.** Toate cele 16 canale pleacă spre PCA9685 într-un
-  singur pachet. La fiecare 0,1 s se citește înapoi un canal, ca să se verifice că
-  cipul ține valoarea trimisă.
-- **Coridorul piciorului.** Pentru fiecare poziție a coapsei există un interval
-  sigur min/max pentru genunchi (`backend/corridor.json`). Mișcările sunt limitate și
-  făcute în pași, astfel încât genunchiul rămâne mereu în acest interval. Așa piciorul
-  nu se lovește de el însuși sau de corp.
-- **Mișcare în impulsuri (Pulsed motion).** Opțional: picioarele se mișcă pe rând, în
-  pași de maximum 400 µs. Așa bateria nu alimentează niciodată patru picioare în
-  mișcare deodată.
-- **Protecție la căderi de tensiune.** PCA9685 este verificat la fiecare 0,2 s. O
-  cădere de tensiune resetează cipul la o frecvență PWM greșită. La frecvența greșită
-  impulsurile ies cu lățimea greșită și pot împinge toate articulațiile peste limite.
-  De aceea Suki ține toate ieșirile la zero, apoi setează din nou frecvența. Dacă
-  cipul este găsit resetat de 3 ori în 6 s, Suki renunță și ține toate ieșirile
-  oprite până la repornire. Aceasta este o problemă de alimentare: reparați sursa.
-- **E-STOP** pune toate ieșirile la zero (servomotoarele devin moi). Apăsați UNLOCK
-  ca să puteți controla robotul din nou.
+- **50 Hz motion loop.** A dedicated thread runs 50 times per second. When it's
+  allowed to, it asks Linux for real-time priority (`SCHED_FIFO` 10).
+- **Speed ramping.** Servos never jump straight to their target. Each tick they
+  move toward it at a set speed: 900 µs/s by default, adjustable from 60 to
+  2400 µs/s.
+- **One I2C write per tick.** All 16 channels are sent to the PCA9685 in a single
+  transaction. Every 0.1 s one channel is read back to confirm the chip is holding
+  the value it was sent.
+- **Leg corridor.** For every thigh position there's a safe min/max range for the
+  knee (`backend/corridor.json`). Movements are clamped and broken into steps so
+  the knee always stays inside that range. This keeps the leg from hitting itself
+  or the body.
+- **Pulsed motion.** Optional: the legs move one at a time, in steps of at most
+  400 µs, so the battery never has to power all four legs moving at once.
+- **Brownout protection.** The PCA9685 is checked every 0.2 s. A brownout resets
+  the chip to the wrong PWM frequency. At the wrong frequency the pulses come out
+  with the wrong width and can drive every joint past its limits. When this
+  happens, Suki holds all outputs at zero and then sets the frequency again. If the
+  chip is found reset 3 times within 6 s, Suki gives up and keeps all outputs off
+  until a restart. This is a power supply problem: fix the supply.
+- **E-STOP** sets all outputs to zero (the servos go limp). Press UNLOCK to take
+  control of the robot again.
 
-### Viziune: YOLO
+### Vision: YOLO
 
-Suki folosește modele [Ultralytics](https://docs.ultralytics.com) **YOLO26 nano**.
-Fișierele sunt în `backend/models/`:
+Suki uses [Ultralytics](https://docs.ultralytics.com) **YOLO26 nano** models.
+The files live in `backend/models/`:
 
-| Model | Ce detectează | Antrenare |
+| Model | What it detects | Training |
 |---|---|---|
-| `yolo26n.pt` | 80 de clase COCO uzuale (person, car, dog, cat, traffic light…) | Greutăți COCO standard |
-| `trafficeu.pt` | 55 de indicatoare rutiere europene (limite de viteză, stop, cedează trecerea, trecere de pietoni…) | Antrenat pornind de la `yolo26n.pt`, 100 de epoci, 640 px, setul „Traffic Signs Detection Europe v14" (~4.500 de imagini) |
-| `trafficch.pt` | 4 tipuri de indicatoare din Hong Kong (direcție, obligare, direcție stradă, avertizare) | Antrenat pornind de la `yolo26n.pt`, 50 de epoci, 640 px |
+| `yolo26n.pt` | 80 common COCO classes (person, car, dog, cat, traffic light…) | Standard COCO weights |
+| `trafficeu.pt` | 55 European road signs (speed limits, stop, yield, pedestrian crossing…) | Fine-tuned from `yolo26n.pt`, 100 epochs, 640 px, on the "Traffic Signs Detection Europe v14" dataset (~4,500 images) |
+| `trafficch.pt` | 4 types of Hong Kong signs (direction, mandatory, street direction, warning) | Fine-tuned from `yolo26n.pt`, 50 epochs, 640 px |
 
-Camera live folosește `yolo26n.pt`. Pentru alt model, schimbați `YOLO_MODEL` în
-`backend/config.py`.
+The live camera uses `yolo26n.pt`. To use a different model, change `YOLO_MODEL`
+in `backend/config.py`.
 
-#### Cum funcționează detecția live
+#### How live detection works
 
-1. Firul camerei citește cadre la 640×480, 20 fps.
-2. Un fir separat de detecție încarcă YOLO la prima folosire, cu `torch` limitat la
-   2 fire. Apoi face o rulare de încălzire (warm-up).
-3. Detectorul ia cel mai nou cadru și rulează YOLO la **256 px**, cu **încredere
-   0,4**. Apoi așteaptă 0,1 s și ia următorul cel mai nou cadru. Camera nu așteaptă
-   niciodată după YOLO: desenează ultimele cutii pe care le are.
-4. Cutiile se desenează pe video. Aceste clase sunt desenate cu portocaliu, ca
-   alertă: person, bicycle, car, motorcycle, bus, truck, cat, dog.
-5. Video-ul ajunge în browser ca MJPEG (`/stream.mjpg`). Detecțiile pleacă pe
-   WebSocket.
+1. The camera thread reads frames at 640×480, 20 fps.
+2. A separate detection thread loads YOLO on first use, with `torch` limited to
+   2 threads, and then does a warm-up run.
+3. The detector grabs the latest frame and runs YOLO at **256 px** with a
+   **confidence of 0.4**. It then waits 0.1 s and grabs the next latest frame. The
+   camera never waits on YOLO: it just draws the most recent boxes it has.
+4. Boxes are drawn on the video. These classes are drawn in orange as alerts:
+   person, bicycle, car, motorcycle, bus, truck, cat, dog.
+5. The video reaches the browser as MJPEG (`/stream.mjpg`). Detections are sent
+   over the WebSocket.
 
-#### Culoarea semaforului
+#### Traffic light color
 
-YOLO găsește doar *unde* este semaforul. Culoarea se află cu OpenCV simplu:
+YOLO only finds *where* the traffic light is. The color is worked out with plain
+OpenCV:
 
-1. Se ia cea mai mare cutie `traffic light` și se decupează.
-2. Decupajul se convertește în HSV și se numără pixelii roșii, galbeni și verzi.
-3. Dacă roșul sau verdele acoperă cel puțin 2% din decupaj, semaforul are acea
-   culoare.
-4. Dacă YOLO este oprit, se verifică tot cadrul.
+1. Take the largest `traffic light` box and crop it.
+2. Convert the crop to HSV and count the red, yellow and green pixels.
+3. If red or green covers at least 2% of the crop, that's the light's color.
+4. If YOLO is off, the whole frame is checked instead.
 
-Lab-ul folosește o variantă mai puternică. Când numărarea pixelilor este prea slabă,
-caută cea mai luminoasă pată din decupaj. Apoi verifică nuanța ei și înălțimea ei în
-carcasă (roșul este sus, verdele jos).
+The Lab uses a more robust version. When the pixel count is too weak, it looks for
+the brightest spot in the crop, then checks its hue and its height within the
+housing (red is at the top, green at the bottom).
 
 #### Lab
 
-Tab-ul Vision are un Lab pentru testarea modelelor pe imagini statice:
+The Vision tab includes a Lab for testing models on still images:
 
-- Încărcați până la 60 de imagini (maximum 12 MB fiecare, redimensionate la 1280 px
-  pe latura lungă).
-- Rulați pe ele orice fișier `.pt` din `backend/models/`. Alegeți încrederea și
-  dimensiunea imaginii (160–1280 px).
-- Rezultatele adnotate se salvează ca `backend/lab/<id>__<model>.out.jpg`.
-- Cel mult 2 modele stau în memorie în același timp.
+- Upload up to 60 images (12 MB max each, resized to 1280 px on the long side).
+- Run any `.pt` file from `backend/models/` on them, with your choice of
+  confidence and image size (160–1280 px).
+- Annotated results are saved as `backend/lab/<id>__<model>.out.jpg`.
+- At most 2 models are kept in memory at a time.
 
-Un fișier `.pt` nou pus în `backend/models/` apare automat în Lab.
+Any new `.pt` file dropped into `backend/models/` shows up in the Lab automatically.
 
-### Voce: whisper.cpp
+### Voice: whisper.cpp
 
-Recunoașterea vocală folosește [whisper.cpp](https://github.com/ggerganov/whisper.cpp),
-complet offline. `./setup_voice.sh` îl compilează și descarcă modelul.
+Speech recognition uses [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
+and runs fully offline. `./setup_voice.sh` builds it and downloads the model.
 
-- **Model:** implicit `ggml-base-q5_1.bin`. Alte modele `.bin` din folderul de
-  modele whisper se pot alege din tab-ul Audio.
-- **Limbi:** English, Română, 中文 sau detecție automată.
-- **Setări de viteză:** decodare greedy, fără fallback, 2 fire, `nice 10`, ca bucla de
-  mișcare să păstreze prioritatea.
+- **Model:** `ggml-base-q5_1.bin` by default. Other `.bin` models in the whisper
+  models folder can be selected from the Audio tab.
+- **Languages:** English, Romanian, Chinese, or auto-detect.
+- **Speed settings:** greedy decoding, no fallback, 2 threads, `nice 10`, so the
+  motion loop keeps priority.
 
-Cum funcționează o comandă vocală:
+How a voice command works:
 
-1. `arecord` preia sunetul de la microfon la 16 kHz.
-2. Un prag de energie ascultă după sunet puternic. Vorbirea începe când nivelul
-   depășește pragul și se termină după 0,7 s de liniște. Clipurile mai scurte de
-   0,4 s sunt ignorate, iar cele lungi sunt tăiate la 8 s.
-3. whisper.cpp transcrie clipul. Toate frazele comenzilor sunt trimise ca prompt, ca
-   whisper să prefere cuvintele pe care Suki le cunoaște.
-4. Textul este trecut în litere mici și i se scot diacriticele. Apoi este comparat
-   aproximativ (fuzzy) cu fiecare frază a fiecărei comenzi, în toate limbile.
-5. O comandă pornește dacă scorul ei este cel puțin 0,80 și îl depășește pe al doilea
-   cu 0,15. Altfel rezultatul este „no match" sau „ambiguous". Aceeași comandă nu
-   poate porni din nou timp de 1,5 s.
+1. `arecord` captures audio from the microphone at 16 kHz.
+2. An energy threshold listens for loud sound. Speech starts when the level goes
+   above the threshold and ends after 0.7 s of silence. Clips shorter than 0.4 s
+   are ignored, and long ones are cut off at 8 s.
+3. whisper.cpp transcribes the clip. Every command phrase is passed in as the
+   prompt, so whisper favors the words Suki knows.
+4. The text is lowercased and stripped of diacritics, then fuzzy-matched against
+   every phrase of every command, in all languages.
+5. A command fires if its score is at least 0.80 and beats the runner-up by 0.15.
+   Otherwise the result is "no match" or "ambiguous". The same command can't fire
+   again for 1.5 s.
 
-Comenzi incluse (se editează din tab-ul Audio, salvate în `backend/commands.json`):
+Built-in commands (editable from the Audio tab, saved in `backend/commands.json`):
 
-| Comandă | Exemple de fraze |
+| Command | Example phrases |
 |---|---|
-| Sit down | „sit down", „șezi", „坐下" |
-| Stand up | „stand up", „ridică-te", „站起来" |
-| Hold position | „hold position", „ține poziția", „保持姿势" |
-| Relax | „relax", „relaxează-te", „放松" |
-| Emergency stop | „emergency stop", „oprire de urgență", „急停" |
-| Start / stop recording | „start recording", „oprește înregistrarea" |
+| Sit down | "sit down", "șezi", "坐下" |
+| Stand up | "stand up", "ridică-te", "站起来" |
+| Hold position | "hold position", "ține poziția", "保持姿势" |
+| Relax | "relax", "relaxează-te", "放松" |
+| Emergency stop | "emergency stop", "oprire de urgență", "急停" |
+| Start / stop recording | "start recording", "oprește înregistrarea" |
 
-O comandă poate porni o poziție, o secvență, engage, relax, E-STOP sau înregistrarea.
+A command can trigger a pose, a sequence, engage, relax, E-STOP, or recording.
 
-### Mișcare
+### Movement
 
-- **Poziții (Actions):** poziții salvate pentru toate cele 8 servomotoare ale
-  picioarelor, de ex. `SIT DOWN`, `P1`…`P5`. Poziția curentă se înregistrează din
-  interfață. Salvate în `backend/actions.json`.
-- **Secvențe:** un șir de poziții cu timp de menținere, număr de repetări și inversare
-  opțională, de ex. „sit up" = `SIT DOWN → P1 → P2 → P3 → P4`. Salvate în
+- **Poses (Actions):** saved positions for all 8 leg servos, e.g. `SIT DOWN`,
+  `P1`…`P5`. You can record the current position from the interface. Saved in
+  `backend/actions.json`.
+- **Sequences:** a chain of poses with a hold time, repeat count and optional
+  reverse, e.g. "sit up" = `SIT DOWN → P1 → P2 → P3 → P4`. Saved in
   `backend/sequences.json`.
-- **Puncte de mers:** un mers (gait) este o listă de puncte pentru fiecare picior.
-  Fiecare punct are o poziție a coapsei (µs), o poziție a genunchiului `k` (0 =
-  capătul de jos al coridorului sigur, 1 = capătul de sus) și un timp de oprire.
-  Mersuri incluse: `forward`, `backward`, `step`, `step back`. Salvate în
-  `backend/walk_points.json`.
+- **Gait points:** a gait is a list of points for each leg. Each point has a
+  thigh position (µs), a knee position `k` (0 = bottom of the safe corridor,
+  1 = top), and a pause time. Built-in gaits: `forward`, `backward`, `step`,
+  `step back`. Saved in `backend/walk_points.json`.
 
-### Interfața web
+### Web interface
 
-Se deschide la `http://<ip-pi>:8000`.
+Open it at `http://<pi-ip>:8000`.
 
-| Tab | Ce face |
+| Tab | What it does |
 |---|---|
-| Drive | Joystick pentru mers, butoane pentru poziții, cardurile live ale picioarelor, cameră pe tot ecranul |
-| Calibration | Tabelul servomotoarelor, limite/coridor picioare, puncte de mers, test de mers, mișcare în impulsuri, poziții, secvențe |
-| Simulator | Model 2D al picioarelor, cu poziția live și arcele mersului. Nu trimite nimic la robot |
-| Vision | Camera live cu detecții, pornire/oprire cameră, Lab-ul |
-| Audio | Nivelul microfonului, setări de ascultare, model whisper, înregistrare, comenzi vocale |
-| Auto | Gol deocamdată |
+| Drive | Walking joystick, pose buttons, live leg cards, fullscreen camera |
+| Calibration | Servo table, leg limits/corridor, gait points, walk test, pulsed motion, poses, sequences |
+| Simulator | 2D leg model showing the live position and gait arcs. Sends nothing to the robot |
+| Vision | Live camera with detections, camera on/off, the Lab |
+| Audio | Microphone level, listening settings, whisper model, recording, voice commands |
+| Auto | Empty for now |
 
-## Documentație hardware
+## Hardware documentation
 
-### Sisteme mecanice
-**Software CAD**: Fusion
+### Mechanical systems
+**CAD software**: Fusion
 
-Suki are 4 picioare, fiecare cu 3 articulații: șold, coapsă și genunchi.
+Suki has 4 legs, each with 3 joints: hip, thigh and knee.
 
-| Dimensiune | Valoare |
+| Dimension | Value |
 |---|---|
-| Segment superior picior | 107 mm |
-| Segment inferior picior | 138 mm |
-| Lungime corp | 230 mm |
-| Lățime corp | 78 mm |
-| Înălțime în picioare | 150 mm |
+| Upper leg segment | 107 mm |
+| Lower leg segment | 138 mm |
+| Body length | 230 mm |
+| Body width | 78 mm |
+| Standing height | 150 mm |
 
-### Sisteme electrice
-**Software CAD:** Fusion
+### Electrical systems
+**CAD software:** Fusion
 
-Lista de piese:
+Bill of materials:
 
-| Componentă | Detalii |
+| Component | Details |
 |---|---|
-| Calculator | Raspberry Pi (timpii din cod sunt măsurați pe un Pi 4) |
-| Driver servomotoare | Placă PCA9685, 16 canale PWM, magistrala I2C 1, adresa `0x40`, 50 Hz |
-| Motoare | 12 servomotoare PWM standard (500–2500 µs): 4 picioare × (șold, coapsă, genunchi) |
-| Cameră | Cameră web USB, 640×480 la 20 fps, prin OpenCV/V4L2 |
-| Microfon | Microfonul camerei web (`plughw:CARD=Webcam,DEV=0`), 16 kHz |
+| Computer | Raspberry Pi (timings in the code were measured on a Pi 4) |
+| Servo driver | PCA9685 board, 16 PWM channels, I2C bus 1, address `0x40`, 50 Hz |
+| Motors | 12 standard PWM servos (500–2500 µs): 4 legs × (hip, thigh, knee) |
+| Camera | USB webcam, 640×480 at 20 fps, via OpenCV/V4L2 |
+| Microphone | The webcam's built-in mic (`plughw:CARD=Webcam,DEV=0`), 16 kHz |
 
-Conectarea servomotoarelor la canalele PCA9685 (din `backend/config.py`):
+Servo wiring to the PCA9685 channels (from `backend/config.py`):
 
-| Picior | Coapsă | Genunchi | Șold |
+| Leg | Thigh | Knee | Hip |
 |---|---|---|---|
-| Spate-Stânga (BL) | ch 0 | ch 1 | ch 2 |
-| Spate-Dreapta (BR) | ch 4 | ch 5 | ch 6 |
-| Față-Stânga (FL) | ch 8 | ch 9 | ch 10 |
-| Față-Dreapta (FR) | ch 12 | ch 13 | ch 14 |
+| Back-Left (BL) | ch 0 | ch 1 | ch 2 |
+| Back-Right (BR) | ch 4 | ch 5 | ch 6 |
+| Front-Left (FL) | ch 8 | ch 9 | ch 10 |
+| Front-Right (FR) | ch 12 | ch 13 | ch 14 |
 
-- Cele 4 servomotoare de șold sunt **oprite implicit**. Suki se mișcă cu 8
-  servomotoare (coapse și genunchi). Șoldurile se pornesc din Calibration → tabelul
-  Hardware.
-- Impulsurile servomotoarelor sunt între 500 și 2500 µs, cu neutrul la 1500 µs.
-  Fiecare servomotor are propriile setări min, max și inversare, salvate în
-  `backend/servo_config.json`.
+- The 4 hip servos are **disabled by default**. Suki moves using 8 servos (thighs
+  and knees). The hips can be enabled under Calibration → Hardware table.
+- Servo pulses range from 500 to 2500 µs, with neutral at 1500 µs. Each servo has
+  its own min, max and invert settings, saved in `backend/servo_config.json`.
 
-## Planuri de viitor
+## Future plans
 
-### Obiectiv: câine-ghid pentru persoane nevăzătoare
+### Goal: a guide dog for blind people
 
-Ținta finală este ca Suki să însoțească o persoană nevăzătoare pe stradă, ca un
-câine-ghid. Concret, robotul trebuie să poată:
+The end goal is for Suki to walk a blind person down the street, the way a guide
+dog does. Concretely, the robot needs to be able to:
 
-- să meargă pe trotuar, în fața omului, și să-l ghideze printr-un mâner (ham);
-- să ocolească obstacole: stâlpi, oameni, biciclete, mașini parcate pe trotuar;
-- să se oprească la bordură, la scări și în fața gropilor;
-- să găsească trecerea de pietoni și semaforul de pietoni;
-- să spună când semaforul e verde și să traverseze doar când este sigur;
-- să urmeze un traseu ales vocal („du-mă la farmacie");
-- să **refuze o comandă periculoasă** (de ex. „înainte" când vine o mașină). Câinii-ghid
-  reali fac la fel; se numește *intelligent disobedience*.
+- walk along the sidewalk in front of the person and guide them by a handle (harness);
+- steer around obstacles: poles, people, bikes, cars parked on the sidewalk;
+- stop at curbs, stairs and potholes;
+- find pedestrian crossings and pedestrian signals;
+- say when the light is green and only cross when it's safe;
+- follow a route requested by voice ("take me to the pharmacy");
+- **refuse a dangerous command** (e.g. "forward" when a car is coming). Real guide
+  dogs do the same thing; it's called *intelligent disobedience*.
 
-### Îmbunătățiri necesare
+### Required improvements
 
-#### Mecanică și alimentare
+#### Mechanics and power
 
-| Acum | Ce trebuie |
+| Now | What's needed |
 |---|---|
-| Înălțime 150 mm, corp 230 mm | Robot mai mare (înălțime ~50–60 cm), ca să poată fi ținut de mâner și să urce o bordură de 15 cm |
-| Servomotoare PWM de hobby, șoldurile oprite | Motoare mai puternice (servomotoare de putere sau motoare BLDC cu reductor), toate cele 12 articulații active |
-| Mersuri învățate manual | Mers dinamic cu echilibru (IMU + control în buclă închisă), pentru teren denivelat, pantă, zăpadă |
-| Probleme cu căderile de tensiune | Baterie dedicată pentru motoare, separată de calculator, autonomie de minimum 1–2 ore |
-| Fără protecție | Carcasă rezistentă la ploaie și praf (minimum IP54) |
-| — | Mâner cu senzor de forță și vibrații (feedback haptic), ca omul să simtă direcția și oprirea |
+| 150 mm tall, 230 mm body | A bigger robot (~50–60 cm tall), so it can be held by a handle and climb a 15 cm curb |
+| Hobby PWM servos, hips disabled | Stronger motors (high-torque servos or geared BLDC motors), all 12 joints active |
+| Hand-tuned gaits | Dynamic, balanced walking (IMU + closed-loop control) for uneven ground, slopes and snow |
+| Brownout problems | A dedicated motor battery, separate from the computer, with at least 1–2 hours of runtime |
+| No protection | A rain- and dust-resistant enclosure (IP54 or better) |
+| — | A handle with a force sensor and vibration (haptic feedback), so the person can feel direction changes and stops |
 
-#### Senzori
+#### Sensors
 
-| Senzor | Pentru ce |
+| Sensor | What for |
 |---|---|
-| Cameră stereo / de adâncime | Distanța până la obstacole, bordură, groapă. Calculează adâncimea în hardware, fără să încarce procesorul principal |
-| Cameră cu unghi larg, montată mai sus | Semaforul și semnele sunt deasupra; o cameră la 15 cm de sol nu le vede bine |
-| IMU (accelerometru + giroscop) | Echilibru, detecția căderii, pantă |
-| Senzori ultrasonici / ToF | Obstacole foarte apropiate, sticlă, lucruri pe care camera le ratează |
-| GPS (ideal RTK) + busolă | Navigare pe traseu |
-| Microfon cu mai multe capsule | Comenzi vocale în zgomotul străzii |
-| Difuzor / cască cu conducție osoasă | Mesaje vocale fără să acopere sunetele străzii |
+| Stereo / depth camera | Distance to obstacles, curbs and potholes. Computes depth in hardware without loading the main processor |
+| Wide-angle camera, mounted higher | Traffic lights and signs are overhead; a camera 15 cm off the ground can't see them well |
+| IMU (accelerometer + gyroscope) | Balance, fall detection, slope |
+| Ultrasonic / ToF sensors | Very close obstacles, glass, things the camera misses |
+| GPS (ideally RTK) + compass | Route navigation |
+| Multi-capsule microphone array | Voice commands over street noise |
+| Speaker / bone-conduction headset | Spoken messages that don't drown out street sounds |
 
 #### Software
 
-- **Tab-ul Auto**: aici intră modul autonom (acum este gol).
-- **Navigare**: hărți offline OpenStreetMap, traseu pe trotuare, localizare GPS + odometrie.
-- **Segmentare**: trotuar, carosabil, trecere de pietoni, bordură, scări, nu doar cutii.
-- **Urmărire în timp** (tracking, de ex. ByteTrack): aceeași mașină este urmărită de la un
-  cadru la altul, ca să se știe dacă se apropie și cu ce viteză.
-- **Semafor cu model dedicat**: culoarea se citește acum cu praguri HSV, care greșesc la
-  soare puternic, noaptea sau cu reflexii. Trebuie un clasificator antrenat, cu clasele
-  `roșu`, `verde`, `galben`, `stins`, `necunoscut`, separat pentru semaforul de pietoni
-  (omulețul) și cel pentru mașini. Decizia „verde" se ia doar după mai multe cadre la
-  rând care sunt de acord.
-- **Rezoluție mai mare**: detecția rulează acum la 256 px. Un semafor la 15 m are doar
-  câțiva pixeli la această rezoluție. Este nevoie de 640 px sau mai mult.
-- **Mesaje vocale (TTS) offline**: „mașină din stânga", „trecere de pietoni în față",
-  „verde, putem traversa".
-- **Siguranță**: watchdog, oprire automată când un senzor nu mai răspunde, jurnal
-  complet al deciziilor. Regula de bază: **când nu este sigur, Suki se oprește**.
+- **Auto tab**: this is where autonomous mode will go (it's empty for now).
+- **Navigation**: offline OpenStreetMap maps, sidewalk routing, GPS + odometry
+  localization.
+- **Segmentation**: sidewalk, road, crosswalk, curb, stairs, not just bounding boxes.
+- **Object tracking** (e.g. ByteTrack): the same car is followed from frame to
+  frame, so Suki knows whether it's approaching and how fast.
+- **Dedicated traffic light model**: the color is currently read with HSV
+  thresholds, which get it wrong in strong sunlight, at night, or with
+  reflections. This needs a trained classifier with the classes `red`, `green`,
+  `yellow`, `off`, `unknown`, with separate handling for pedestrian signals (the
+  little walking man) and vehicle lights. A "green" decision is only made after
+  several consecutive frames agree.
+- **Higher resolution**: detection currently runs at 256 px. At that resolution a
+  traffic light 15 m away is only a few pixels. It needs 640 px or more.
+- **Offline spoken messages (TTS)**: "car on the left", "crosswalk ahead",
+  "green, we can cross".
+- **Safety**: a watchdog, automatic stop when a sensor stops responding, and a
+  complete log of every decision. The ground rule: **when in doubt, Suki stops**.
 
-### Recunoaștere cu acuratețe mare
+### High-accuracy recognition
 
-Ce trebuie să recunoască Suki și țintele propuse:
+What Suki needs to recognize, and the proposed targets:
 
-| Clasă | Exemple | Țintă propusă |
+| Class | Examples | Proposed target |
 |---|---|---|
-| Semafor de pietoni + culoare | roșu, verde, verde intermitent, stins | Detecție ≥ 99% până la 20 m; „verde" fals practic zero (sub 1 la 10.000 decizii) |
-| Vehicule | mașină, autobuz, camion, motocicletă, bicicletă, trotinetă | Detecție ≥ 98% până la 30 m, latență sub 150 ms |
-| Pietoni și animale | persoană, cărucior, câine | Detecție ≥ 97% |
-| Semne de circulație | trecere de pietoni, stop, cedează trecerea, accesul interzis | mAP50 ≥ 0,90 |
-| Pericole la sol | gropi, capace lipsă, bordură, scări, denivelări, bălți | Detecție ≥ 95% până la 5 m |
-| Elemente de navigare | trecere de pietoni (zebră), trotuar, carosabil | Segmentare, IoU ≥ 0,85 |
+| Pedestrian signal + color | red, green, flashing green, off | ≥ 99% detection up to 20 m; false "green" virtually zero (under 1 in 10,000 decisions) |
+| Vehicles | car, bus, truck, motorcycle, bicycle, scooter | ≥ 98% detection up to 30 m, latency under 150 ms |
+| Pedestrians and animals | person, stroller, dog | ≥ 97% detection |
+| Traffic signs | pedestrian crossing, stop, yield, no entry | mAP50 ≥ 0.90 |
+| Ground hazards | potholes, missing manhole covers, curbs, stairs, uneven pavement, puddles | ≥ 95% detection up to 5 m |
+| Navigation features | crosswalk (zebra), sidewalk, road | Segmentation, IoU ≥ 0.85 |
 
-Erorile nu sunt egale. „Roșu" citit greșit ca „verde" poate fi mortal; „verde" citit ca
-„roșu" înseamnă doar o așteptare în plus. Modelele și pragurile se aleg ca să favorizeze
-oprirea.
+Not all errors are equal. Reading "red" as "green" can be fatal; reading "green"
+as "red" just means waiting a bit longer. Models and thresholds are chosen to err
+on the side of stopping.
 
-De ce latența contează: o mașină cu 50 km/h parcurge ~14 m pe secundă. La 200 ms
-întârziere, mașina a mers deja aproape 3 m până când Suki a reacționat.
+Why latency matters: a car at 50 km/h covers ~14 m per second. With a 200 ms
+delay, the car has already traveled almost 3 m by the time Suki reacts.
 
-### Seturi de date necesare
+### Required datasets
 
-**Seturi publice** (pentru pre-antrenare):
+**Public datasets** (for pre-training):
 
-| Set de date | Ce conține |
+| Dataset | What it contains |
 |---|---|
-| [COCO](https://cocodataset.org) | Persoane, vehicule, semafoare (deja folosit de `yolo26n.pt`) |
-| [Mapillary Traffic Sign Dataset](https://www.mapillary.com/dataset/trafficsign) | Peste 300 de tipuri de semne, din toată lumea, inclusiv Europa |
-| [GTSDB / GTSRB](https://benchmark.ini.rub.de) | Semne de circulație germane (similare cu cele din România) |
-| [DriveU Traffic Light Dataset (DTLD)](https://www.uni-ulm.de/in/iui-drive-u/projekte/driveu-traffic-light-dataset/) | Semafoare din orașe germane, cu starea fiecăruia |
-| Pedestrian Traffic Lights (PTL / LYTNet) | Semafoare de pietoni fotografiate din perspectiva pietonului, făcut pentru nevăzători |
-| [Mapillary Vistas](https://www.mapillary.com/dataset/vistas) / [Cityscapes](https://www.cityscapes-dataset.com) | Segmentare stradă: trotuar, bordură, trecere de pietoni |
-| [RDD2022](https://github.com/sekilab/RoadDamageDetector) | Gropi și fisuri în asfalt, din mai multe țări |
-| [BDD100K](https://www.vis.xyz/bdd100k/) | Condiții grele: noapte, ploaie, ceață |
+| [COCO](https://cocodataset.org) | People, vehicles, traffic lights (already used by `yolo26n.pt`) |
+| [Mapillary Traffic Sign Dataset](https://www.mapillary.com/dataset/trafficsign) | Over 300 sign types from around the world, Europe included |
+| [GTSDB / GTSRB](https://benchmark.ini.rub.de) | German traffic signs (similar to Romanian ones) |
+| [DriveU Traffic Light Dataset (DTLD)](https://www.uni-ulm.de/in/iui-drive-u/projekte/driveu-traffic-light-dataset/) | Traffic lights from German cities, each labeled with its state |
+| Pedestrian Traffic Lights (PTL / LYTNet) | Pedestrian signals photographed from a pedestrian's point of view, built for blind users |
+| [Mapillary Vistas](https://www.mapillary.com/dataset/vistas) / [Cityscapes](https://www.cityscapes-dataset.com) | Street segmentation: sidewalk, curb, crosswalk |
+| [RDD2022](https://github.com/sekilab/RoadDamageDetector) | Potholes and cracks in asphalt, from several countries |
+| [BDD100K](https://www.vis.xyz/bdd100k/) | Tough conditions: night, rain, fog |
 
-**Set de date propriu** (obligatoriu): seturile publice sunt filmate din mașină, la
-înălțimea unui șofer. Suki vede strada de jos, de pe trotuar, iar semafoarele, semnele și
-trecerile de pietoni din România arată puțin diferit. Este nevoie de:
+**Our own dataset** (required): public datasets are shot from cars, at driver
+eye level. Suki sees the street from low down on the sidewalk, and Romanian
+traffic lights, signs and crosswalks look a little different. We need:
 
-- imagini filmate chiar cu camera robotului, la înălțimea ei, pe trotuare din România;
-- toate condițiile: zi, noapte, ploaie, zăpadă, soare din față, contre-jour;
-- semafoare de pietoni românești, inclusiv cele cu numărătoare inversă;
-- gropi, capace, bordure și scări de pe trotuare, nu doar de pe carosabil;
-- orientativ **≥ 1.500 de imagini și ≥ 10.000 de obiecte adnotate pentru fiecare clasă**
-  (recomandarea Ultralytics), plus ~10% imagini fără niciun obiect;
-- adnotare cu [CVAT](https://www.cvat.ai) sau [Label Studio](https://labelstud.io),
-  verificată de două persoane pentru clasele critice (semafor, vehicule).
+- footage shot with the robot's own camera, at its height, on Romanian sidewalks;
+- every condition: day, night, rain, snow, sun in front, backlighting;
+- Romanian pedestrian signals, including the ones with countdown timers;
+- potholes, manhole covers, curbs and stairs on sidewalks, not just on the road;
+- roughly **≥ 1,500 images and ≥ 10,000 annotated objects per class**
+  (Ultralytics' recommendation), plus ~10% background images with no objects;
+- annotation with [CVAT](https://www.cvat.ai) or [Label Studio](https://labelstud.io),
+  reviewed by two people for the critical classes (traffic lights, vehicles).
 
-Testarea finală se face pe un set separat, filmat pe străzi pe care modelul nu le-a văzut
-niciodată.
+Final testing is done on a separate set, shot on streets the model has never seen.
 
-### Performanță de calcul necesară
+### Required compute
 
-**Ce metrică contează**
+**Which metric matters**
 
-- **TOPS INT8** (tera-operații pe secundă, pe 8 biți): metrica principală. Modelele
-  YOLO se pot rula cuantizate pe 8 biți aproape fără pierdere de acuratețe.
-- **TFLOPS FP16/FP32**: relevant doar dacă modelele rulează fără cuantizare.
-- Cifra din fișa tehnică este un maxim teoretic. Un model real folosește de obicei doar
-  20–40% din el.
-- Ce contează cu adevărat: **cadre pe secundă și latența măsurate pe modelul nostru,
-  la rezoluția noastră**, plus **TOPS/W**, pentru că robotul merge pe baterie.
+- **INT8 TOPS** (tera-operations per second at 8-bit): the main metric. YOLO
+  models can run 8-bit quantized with almost no loss in accuracy.
+- **FP16/FP32 TFLOPS**: only relevant if the models run unquantized.
+- The number on the spec sheet is a theoretical peak. A real model usually uses
+  only 20–40% of it.
+- What actually matters: **frames per second and latency measured on our model,
+  at our resolution**, plus **TOPS/W**, since the robot runs on battery.
 
-**Cât calcul trebuie**
+**How much compute is needed**
 
-| Sarcină | Model exemplu | Cost per cadru | Cadre/s țintă |
+| Task | Example model | Cost per frame | Target fps |
 |---|---|---|---|
-| Detecție vehicule, pietoni, semne (640 px) | YOLO26s | ~20 GFLOPs | 15–20 |
-| Segmentare trotuar, trecere, gropi (640 px) | YOLO26s-seg | ~30–40 GFLOPs | 10 |
-| Clasificare culoare semafor (pe decupaj) | CNN mic | < 1 GFLOP | 15–20 |
-| Adâncime | Calculată de camera stereo | 0 pe procesorul principal | 30 |
+| Vehicle, pedestrian and sign detection (640 px) | YOLO26s | ~20 GFLOPs | 15–20 |
+| Sidewalk, crosswalk and pothole segmentation (640 px) | YOLO26s-seg | ~30–40 GFLOPs | 10 |
+| Traffic light color classification (on the crop) | Small CNN | < 1 GFLOP | 15–20 |
+| Depth | Computed by the stereo camera | 0 on the main processor | 30 |
 
-Total: ~0,7–1 TOPS folosiți efectiv. Cu utilizare reală de 20–40% și o rezervă pentru
-modele mai mari, este nevoie de **minimum ~13 TOPS INT8, recomandat 26 TOPS sau mai mult**.
+Total: ~0.7–1 TOPS of actual use. Accounting for 20–40% real-world utilization
+and headroom for bigger models, that means **at least ~13 INT8 TOPS, with 26 TOPS
+or more recommended**.
 
-**Hardware-ul actual față de ce trebuie**
+**Current hardware vs. what's needed**
 
-| Metrică | Acum (Raspberry Pi 4, doar CPU) | Necesar pentru stradă |
+| Metric | Now (Raspberry Pi 4, CPU only) | Needed for the street |
 |---|---|---|
-| Putere de calcul AI | sub 0,05 TFLOPS FP32 (maxim teoretic, 4 nuclee Cortex-A72), fără accelerator | ≥ 13 TOPS INT8, recomandat ≥ 26 TOPS |
-| Rezoluție detecție | 256 px | ≥ 640 px |
-| Model | YOLO26 nano (~6 GFLOPs la 640 px, ~1 GFLOP la 256 px) | Model „small” sau mai mare (~20–40 GFLOPs), mai multe modele în paralel |
-| Cadre/s detecție | câteva, cu pauză de 0,1 s între rulări | ≥ 15 pentru detecție, ≥ 10 pentru segmentare |
-| Latență cameră → decizie | sute de ms | sub 150 ms |
-| Memorie RAM | partajată cu restul sistemului | ≥ 8 GB |
-| Consum pentru partea de AI | — | sub ~15 W, ca bateria să țină 1–2 ore |
+| AI compute | under 0.05 FP32 TFLOPS (theoretical peak, 4 Cortex-A72 cores), no accelerator | ≥ 13 INT8 TOPS, ≥ 26 TOPS recommended |
+| Detection resolution | 256 px | ≥ 640 px |
+| Model | YOLO26 nano (~6 GFLOPs at 640 px, ~1 GFLOP at 256 px) | "Small" model or larger (~20–40 GFLOPs), several models in parallel |
+| Detection fps | a few, with a 0.1 s pause between runs | ≥ 15 for detection, ≥ 10 for segmentation |
+| Camera → decision latency | hundreds of ms | under 150 ms |
+| RAM | shared with the rest of the system | ≥ 8 GB |
+| AI power draw | — | under ~15 W, so the battery lasts 1–2 hours |
 
-Cu procesorul Pi 4, un YOLO nano la 640 px merge doar cu câteva cadre pe secundă. De
-aceea detecția rulează acum la 256 px și cu pauze. Pentru uz pe stradă, puterea de calcul
-trebuie să crească de câteva sute de ori.
+On the Pi 4's CPU, YOLO nano at 640 px only manages a few frames per second.
+That's why detection currently runs at 256 px with pauses. For street use,
+compute needs to go up by a factor of several hundred.
 
-**Eficiența energetică: de ce un accelerator AI**
+**Energy efficiency: why an AI accelerator**
 
-Suki merge pe baterii și, ca un câine-ghid, trebuie să țină o plimbare întreagă prin
-oraș. Autonomia contează la fel de mult ca puterea de calcul. Un accelerator AI dedicat
-(NPU) ajută direct la asta:
+Suki runs on batteries and, like a guide dog, has to last a full walk across
+town. Battery life matters just as much as compute. A dedicated AI accelerator
+(NPU) helps directly with this:
 
-- Un NPU face aceleași operații ca procesorul cu mult mai puțină energie. Procesorul
-  general obține de obicei sub 0,01 TOPS/W la rețele neuronale. Un NPU ajunge la ordinul
-  câtorva TOPS/W, deci de sute de ori mai eficient pe fiecare cadru procesat.
-- Procesorul Pi 4 rulând YOLO în continuu stă aproape de sarcină maximă: consumă mai mult,
-  se încălzește și ajunge să-și scadă singur frecvența (throttling). Cu un accelerator,
-  procesorul rămâne liber pentru bucla de mișcare la 50 Hz, voce și navigare.
-- Energia economisită la calcul rămâne pentru motoare, care consumă oricum cel mai mult.
-  Asta înseamnă mai mulți kilometri pe o încărcare.
-- Ținta este ca toată partea de AI să consume **sub ~15 W**, la **≥ 2 TOPS/W**.
+- An NPU performs the same operations as the CPU using far less energy. A
+  general-purpose CPU typically gets under 0.01 TOPS/W on neural networks. An NPU
+  reaches a few TOPS/W, making it hundreds of times more efficient per frame.
+- A Pi 4 CPU running YOLO nonstop sits near full load: it draws more power, heats
+  up and ends up throttling itself. With an accelerator, the CPU stays free for
+  the 50 Hz motion loop, voice and navigation.
+- The energy saved on compute goes to the motors, which use the most power
+  anyway. That means more kilometers per charge.
+- The target is for all of the AI to draw **under ~15 W**, at **≥ 2 TOPS/W**.
 
 ---
 **© sySTEMatic Robotics**
